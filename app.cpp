@@ -1,12 +1,14 @@
 #include <cassert>
 #include "app.h"
-#include "winapi.h"
+#include "utils\winapi.h"
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
 process::snapshot::snapshot(
 ) :
 	_handle(Winapi::Toolhelp32::CreateSnapshot(TH32CS_SNAPPROCESS))
-{}
+{
+	assert(_handle);
+}
 process::snapshot::~snapshot(
 ) {
 	Winapi::Handle::Close(_handle);
@@ -53,17 +55,17 @@ bool process::snapshot::find(
 	return ERROR_NO_MORE_FILES == Winapi::LastError::Get();
 }
 
-/*static*/ process::id process::find_by__image_filename(
-	_in image::filename image_filename
-) {
-	return 0;
-}
-
 //---------------------------------------------------------------------------------------------------------------------------------------------
 app::app(
-	_in process::image::filename image_filename
+	_in process::id pid
 ) :
-	_pid(0)
-{}
+	_handle(Winapi::Process::Open(pid, PROCESS_ALL_ACCESS))
+{
+	assert(_handle);
+}
+app::~app(
+) {
+	Winapi::Handle::Close(_handle);
+}
 
 //---------------------------------------------------------------------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
 #include <vadefs.h>
 #include <consoleapi2.h>
 #include <set>
-#include "winapi.h"
+#include "utils\winapi.h"
 
 class console {
 public:

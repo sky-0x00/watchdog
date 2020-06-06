@@ -10,13 +10,18 @@ int main(
 	//console.color_set({console::color::green}, true);
 	//console.echo(L" ok\n");
 
+	auto hStdOut = Winapi::StdHandle::Get(STD_OUTPUT_HANDLE);
+	auto is_ok = Winapi::Console::Free();
+
 	std::vector<process::snapshot::findinfo> findinfo_s(_countof(config::known_process_image_filenames));
 	{
 		auto config__known_process_image_filename = config::known_process_image_filenames;
 		for (auto &findinfo : findinfo_s)
 			findinfo.image_filename = *config__known_process_image_filename++;
 	}
-	const auto is_ok = process::snapshot().find(findinfo_s);
+	is_ok = process::snapshot().find(findinfo_s);
+	is_ok = Winapi::Console::Attach(findinfo_s.at(0).id);
+	auto hStdOutNew = Winapi::StdHandle::Get(STD_OUTPUT_HANDLE);
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

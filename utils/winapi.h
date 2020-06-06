@@ -21,6 +21,8 @@ namespace Winapi {
 		struct TextAttribute {
 			static bool Set(_in HANDLE hConsoleOutput, _in WORD TextAttribute);
 		};
+		bool Attach(_in DWORD ProcessId);
+		bool Free();
 	}
 	namespace Toolhelp32 {
 		HANDLE CreateSnapshot(_in DWORD Flags, DWORD th32ProcessID = 0);
@@ -38,5 +40,8 @@ namespace Winapi {
 	namespace LastError {
 		Status Get();
 		void Set(_in Status Status);
+	}
+	namespace Process {
+		HANDLE Open(_in DWORD ProcessId, _in DWORD DesiredAccess, _in bool IsInheritHandle = false);
 	}
 }

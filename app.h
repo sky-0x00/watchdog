@@ -1,10 +1,12 @@
 #pragma once
 
 #include <vector>
-#include "types.h"
+#include "utils\types.h"
 
 struct process {
 	typedef unsigned id;
+	typedef handle_t handle;
+
 	struct image {
 		typedef cstr_t filename;
 	};
@@ -22,14 +24,16 @@ struct process {
 		typedef handle_t handle;
 		const handle _handle;
 	};
-	static process::id find_by__image_filename(_in image::filename image_filename);
 };
 
 class app {
 public:
-	app(_in process::image::filename image_filename);
+
+public:
+	app(_in process::id pid);
+	~app();
 protected:
 
 private:
-	const process::id _pid;
+	const process::handle _handle;
 };
