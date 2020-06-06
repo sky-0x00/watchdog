@@ -1,11 +1,22 @@
-// watchdog.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+#include <windows.h>
+#include "config.h"
+#include "console.h"
+#include "app.h"
 
-#include <iostream>
+int main(
+) {
+	//console console;
+	//console.echo(L"i: %i...", -42);
+	//console.color_set({console::color::green}, true);
+	//console.echo(L" ok\n");
 
-int main()
-{
-    std::cout << "Hello World!\n";
+	std::vector<process::snapshot::findinfo> findinfo_s(_countof(config::known_process_image_filenames));
+	{
+		auto config__known_process_image_filename = config::known_process_image_filenames;
+		for (auto &findinfo : findinfo_s)
+			findinfo.image_filename = *config__known_process_image_filename++;
+	}
+	const auto is_ok = process::snapshot().find(findinfo_s);
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
