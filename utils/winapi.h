@@ -54,4 +54,14 @@ namespace Winapi {
 	namespace Process {
 		HANDLE Open(_in DWORD ProcessId, _in DWORD DesiredAccess, _in bool IsInheritHandle = false);
 	}
-}
+
+	struct Shutdown {
+		Shutdown(_in LPWSTR MachineName = nullptr);
+	//public:
+		bool Initiate(_in DWORD TimeoutSecs, _in bool IsForceAppsClosed, _in bool IsRebootAfterShutdown, _in LPWSTR Message = nullptr);
+		bool Abort();
+	//public:
+		const LPWSTR MachineName;
+	};
+
+}	// namespace Winapi

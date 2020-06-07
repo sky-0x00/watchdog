@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -84,6 +84,7 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)..\..\build-results\x32-release\</OutDir>
     <IntDir>$(SolutionDir)..\..\build-results\x32-release\temp\</IntDir>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -106,6 +107,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(SolutionDir)..\..\build-symbols\x32-debug\$(TargetName).pdb</ProgramDatabaseFile>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /y "$(TargetPath)" "\\pc-scremote\c$\debug\" /b</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -144,6 +148,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(SolutionDir)..\..\build-symbols\x32-release\$(TargetName).pdb</ProgramDatabaseFile>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /y "$(TargetPath)" "\\pc-scremote\c$\debug\" /b</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -170,6 +177,7 @@
     <ClCompile Include="application.cpp" />
     <ClCompile Include="console.cpp" />
     <ClCompile Include="monitor.cpp" />
+    <ClCompile Include="system.cpp" />
     <ClCompile Include="utils\types.cpp" />
     <ClCompile Include="utils\winapi.cpp" />
     <ClCompile Include="watchdog.cpp" />
@@ -179,6 +187,7 @@
     <ClInclude Include="config.h" />
     <ClInclude Include="console.h" />
     <ClInclude Include="monitor.h" />
+    <ClInclude Include="system.h" />
     <ClInclude Include="utils\types.h" />
     <ClInclude Include="utils\winapi.h" />
   </ItemGroup>

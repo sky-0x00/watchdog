@@ -200,7 +200,9 @@ bool application::console::read__safe(
 	screen_buffer screen_buffer(screen_buffer__rect);
 	DWORD NumberOfCharsRead = 0;
 	if (!Winapi::Console::Output::ReadCharacter(
-		_handle, screen_buffer.data(), screen_buffer.size(), {0, std::max<decltype(COORD::Y)>(0, screen_buffer__info.dwCursorPosition.Y - screen_buffer__rect.y)}, &NumberOfCharsRead
+		_handle, screen_buffer.data(), static_cast<DWORD>(screen_buffer.size()), 
+		{0, std::max<decltype(COORD::Y)>(0, screen_buffer__info.dwCursorPosition.Y - screen_buffer__rect.y)}, 
+		&NumberOfCharsRead
 	))
 		return false;
 	//assert(NumberOfCharsRead == screen_buffer.size());

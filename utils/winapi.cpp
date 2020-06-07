@@ -104,3 +104,22 @@ HANDLE Process::Open(
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
+Shutdown::Shutdown(
+	_in LPWSTR MachineName /*= nullptr*/
+) :
+	MachineName(MachineName)
+{}
+
+bool Shutdown::Initiate(
+	_in DWORD TimeoutSecs, _in bool IsForceAppsClosed, _in bool IsRebootAfterShutdown, _in LPWSTR Message /*= nullptr*/
+) {
+	return FALSE != ::InitiateSystemShutdownW(
+		MachineName, Message, TimeoutSecs, IsForceAppsClosed ? TRUE : FALSE, IsRebootAfterShutdown ? TRUE : FALSE
+	);
+}
+bool Shutdown::Abort(
+) {
+	return FALSE != ::AbortSystemShutdownW(MachineName);
+}
+
+//---------------------------------------------------------------------------------------------------------------------------------------------

@@ -2,6 +2,7 @@
 #include "config.h"
 #include "console.h"
 #include "application.h"
+#include "system.h"
 
 int main(
 ) {
@@ -9,7 +10,6 @@ int main(
 	//console.echo(L"i: %i...", -42);
 	//console.color_set({console::color::green}, true);
 	//console.echo(L" ok\n");
-
 
 	auto is_ok = Winapi::Console::Free();
 	std::vector<process::snapshot::findinfo> findinfo_s(_countof(config::profile_s));
@@ -21,9 +21,9 @@ int main(
 	is_ok = process::snapshot().find(findinfo_s);
 
 	const auto &findinfo = findinfo_s.at(0);
-	is_ok = application({findinfo.id, findinfo.profile.type}).check();
-	if (!is_ok)
-		throw exception();//system.reboot();
+	if (0 != findinfo.id)
+		is_ok = application({findinfo.id, findinfo.profile.type}).check();
+	is_ok = system::reboot();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
