@@ -86,6 +86,35 @@ bool application::check(
 /*static*/ bool application::check_xmrig(
 	_in const console::screen_buffer &screen_buffer
 ) {
+	auto it_find = std::find(screen_buffer.crbegin(), screen_buffer.crend(), L']');
+	if (screen_buffer.crend() == it_find)
+		return true;
+
+	struct pattern {
+		cstr_t data;
+		unsigned size;
+	};
+#define define_pattern(s)	{s, _countof(s) - 1}
+	const pattern pattern_s[] {
+		define_pattern(L"DNS error: \"unknown node or service\""),
+		define_pattern(L"connect error: \"network is unreachable\""),
+		
+		//define_pattern(L"speed 10s/60s/15m n/a"),						// 10s
+		define_pattern(L"speed 10s/60s/15m n/a n/a"),					// 60s
+		//define_pattern(L"speed 10s/60s/15m n/a n/a n/a"),				// 15m, mini
+		//define_pattern(L"speed 10s/60s/15m n/a n/a n/a H/s max"),		// 15m, maxi
+	};
+#undef define_pattern
+
+	std::advance(it_find, -2);
+	const auto data = &*it_find;
+
+	for (const auto &pattern : pattern_s)
+		if (0 == _wcsnicmp(data, pattern.data, pattern.size)) {
+			// trace(L"pattern: \"%s\"", pattern);
+			return false;
+		}
+
 	return true;
 }
 

@@ -22,6 +22,8 @@ int main(
 
 	const auto &findinfo = findinfo_s.at(0);
 	is_ok = application({findinfo.id, findinfo.profile.type}).check();
+	if (!is_ok)
+		throw exception();//system.reboot();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

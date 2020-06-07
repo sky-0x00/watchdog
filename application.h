@@ -78,7 +78,7 @@ public:
 	~application() noexcept;
 
 public:
-	bool check() const;
+	bool check() const;			// true: ok, false: need reboot
 protected:
 	static bool check_xmrig(_in const console::screen_buffer &screen_buffer);
 
