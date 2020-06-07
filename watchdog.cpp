@@ -10,12 +10,13 @@ int main(
 	//console.color_set({console::color::green}, true);
 	//console.echo(L" ok\n");
 
-	WCHAR Buffer[512];
-	DWORD BytesReaded = 0;
+	//WCHAR Buffer[512];
+	//DWORD BytesReaded = 0;
 
 	//auto hStdOut = Winapi::StdHandle::Get(STD_OUTPUT_HANDLE);
 	//auto hFile = ::CreateFileW(L"CONOUT$", GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	//auto is_ok = FALSE != ::ReadFile(hFile, Buffer, _countof(Buffer), &BytesReaded, nullptr);
+	
 	auto is_ok = Winapi::Console::Free();
 
 	std::vector<process::snapshot::findinfo> findinfo_s(_countof(config::profile_s));
@@ -28,13 +29,15 @@ int main(
 	}
 	is_ok = process::snapshot().find(findinfo_s);
 
-	is_ok = Winapi::Console::Attach(findinfo_s.at(0).id);
-	auto hStdOutNew = Winapi::StdHandle::Get(STD_OUTPUT_HANDLE);
+	string::list string_s;
+	application(findinfo_s.at(0).id).read(string_s);
 
-	auto hFile = ::CreateFileW(L"CONOUT$", GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-	is_ok = FALSE != ::ReadFile(hFile, Buffer, _countof(Buffer), &BytesReaded, nullptr);
+	//is_ok = Winapi::Console::Attach(findinfo_s.at(0).id);
+	//auto hStdOutNew = Winapi::StdHandle::Get(STD_OUTPUT_HANDLE);
+	//auto hFile = ::CreateFileW(L"CONOUT$", GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	//is_ok = FALSE != ::ReadFile(hFile, Buffer, _countof(Buffer), &BytesReaded, nullptr);
 
-	BytesReaded = 15;
+	//BytesReaded = 15;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

@@ -43,16 +43,16 @@ protected:
 	void echo(_in cstr_t format, _in va_list args) const;
 
 private:
-	struct info {
+	struct info_type {
 		typedef Winapi::Console::Output::ScreenBufferInfo screen_buffer_info;
 		typedef short_t text_attr;
 	};
 
-	bool get__screen_buffer_info__safe(_out info::screen_buffer_info &screen_buffer_info) const noexcept;
-	info::screen_buffer_info get__screen_buffer_info() const;
+	bool get__screen_buffer_info__safe(_out info_type::screen_buffer_info &screen_buffer_info) const noexcept;
+	info_type::screen_buffer_info get__screen_buffer_info() const;
 
-	bool set_info__text_attr__safe(_in const info::text_attr &text_attr) const noexcept;
-	void set_info__text_attr(_in const info::text_attr &text_attr) const;
+	bool set_info__text_attr__safe(_in const info_type::text_attr &text_attr) const noexcept;
+	void set_info__text_attr(_in const info_type::text_attr &text_attr) const;
 
 private:
 	struct handle {

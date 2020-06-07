@@ -27,6 +27,10 @@ bool Console::Free(
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
+Console::Output::ScreenBufferInfo::ScreenBufferInfo(
+) noexcept :
+	CONSOLE_SCREEN_BUFFER_INFO {}
+{}
 /*static*/ bool Console::Output::ScreenBufferInfo::Get(
 	_in HANDLE hConsoleOutput, _out ScreenBufferInfo &ScreenBufferInfo
 ) {
@@ -40,10 +44,15 @@ bool Console::Free(
 }
 
 
-/*static*/ bool Console::Output::Read(
+bool Console::Output::Read(
 	_in HANDLE hConsoleOutput, _out PCHAR_INFO Buffer, _in COORD BufferSize, _in COORD BufferCoord, _in _out PSMALL_RECT ReadRegion
 ) {
 	return FALSE != ::ReadConsoleOutputW(hConsoleOutput, Buffer, BufferSize, BufferCoord, ReadRegion);
+}
+bool Console::Output::ReadCharacter(
+	_in HANDLE hConsoleOutput, _out LPWSTR Character, _in DWORD Length, _in COORD ReadCoord, _out LPDWORD NumberOfCharsRead
+) {
+	return FALSE != ::ReadConsoleOutputCharacterW(hConsoleOutput, Character, Length, ReadCoord, NumberOfCharsRead);
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
@@ -55,7 +64,7 @@ HANDLE Toolhelp32::CreateSnapshot(
 
 Toolhelp32::Process::Entry::Entry(
 ) :
-	PROCESSENTRY32W{ sizeof(PROCESSENTRY32W) }
+	PROCESSENTRY32W {sizeof(PROCESSENTRY32W)}
 {}
 
 bool Toolhelp32::Process::First(

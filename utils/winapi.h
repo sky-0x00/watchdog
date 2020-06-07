@@ -24,12 +24,14 @@ namespace Winapi {
 		
 		namespace Output {
 			struct ScreenBufferInfo : CONSOLE_SCREEN_BUFFER_INFO {
+				ScreenBufferInfo() noexcept;
 				static bool Get(_in HANDLE hConsoleOutput, _out ScreenBufferInfo &ScreenBufferInfo);
 			};
 			struct TextAttribute {
 				static bool Set(_in HANDLE hConsoleOutput, _in WORD TextAttribute);
 			};
-			static bool Read(_in HANDLE hConsoleOutput, _out PCHAR_INFO Buffer, _in COORD BufferSize, _in COORD BufferCoord, _in _out PSMALL_RECT ReadRegion);
+			bool Read(_in HANDLE hConsoleOutput, _out PCHAR_INFO Buffer, _in COORD BufferSize, _in COORD BufferCoord, _in _out PSMALL_RECT ReadRegion);
+			bool ReadCharacter(_in HANDLE hConsoleOutput, _out LPWSTR Character, _in DWORD Length, _in COORD ReadCoord, _out LPDWORD NumberOfCharsRead);
 		};
 	}
 	namespace Toolhelp32 {

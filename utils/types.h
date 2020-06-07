@@ -16,6 +16,9 @@ typedef const char_t *cstr_t;
 typedef short short_t;
 typedef unsigned short ushort_t;
 
+typedef int int_t;
+typedef unsigned int uint_t;
+
 
 class exception {
 public:
@@ -26,4 +29,18 @@ public:
 	code get_code() const noexcept;
 private:
 	const code _code;
+};
+
+#include <string>
+//typedef std::wstring string;
+
+#include <vector>
+#include <list>
+struct string : std::wstring {
+	//__if_exists(std::vector) {
+		typedef std::vector<string> vector;
+	//}
+	//__if_exists(std::list) {
+		typedef std::list<string> list;
+	//}	
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <list>
 #include "utils\winapi.h"
 
 struct process {
@@ -36,7 +37,14 @@ public:
 	class console {
 	public:
 		typedef handle_t handle;
-		typedef Winapi::Console::Output::ScreenBufferInfo screen_buffer_info;
+		struct screen_buffer: std::vector<char_t> {
+			typedef Winapi::Console::Output::ScreenBufferInfo info_type;
+			struct size_type {
+				ushort_t x, y;
+			};
+			screen_buffer(_in const size_type &size);
+		};
+		
 	public:
 		console(_in process::id pid);
 		~console();
@@ -50,8 +58,8 @@ public:
 		static bool detach_safe() noexcept;
 		static void detach();
 
-		bool get__screen_buffer_info__safe(_out screen_buffer_info &screen_buffer_info) const noexcept;
-		screen_buffer_info get__screen_buffer_info() const;
+		bool get__screen_buffer_info__safe(_out screen_buffer::info_type &screen_buffer_info) const noexcept;
+		screen_buffer::info_type get__screen_buffer_info() const;
 
 	private:
 		handle _handle;
@@ -60,6 +68,7 @@ public:
 public:
 	application(_in pid pid);
 	~application() noexcept;
+	void read(_out string::list &string_s) const;
 protected:
 private:
 	const pid _pid;

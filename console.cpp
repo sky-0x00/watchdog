@@ -39,25 +39,25 @@ void console::echo(
 }
 
 bool console::get__screen_buffer_info__safe(
-	_out info::screen_buffer_info &screen_buffer_info
+	_out info_type::screen_buffer_info &screen_buffer_info
 ) const noexcept {
 	return Winapi::Console::Output::ScreenBufferInfo::Get(_handle, screen_buffer_info);
 }
-console::info::screen_buffer_info console::get__screen_buffer_info(
+console::info_type::screen_buffer_info console::get__screen_buffer_info(
 ) const {
-	info::screen_buffer_info screen_buffer_info;
+	info_type::screen_buffer_info screen_buffer_info;
 	if (get__screen_buffer_info__safe(screen_buffer_info))
 		return screen_buffer_info;
 	throw exception();
 }
 
 bool console::set_info__text_attr__safe(
-	_in const info::text_attr &text_attr
+	_in const info_type::text_attr &text_attr
 ) const noexcept {
 	return Winapi::Console::Output::TextAttribute::Set(_handle, text_attr);
 }
 void console::set_info__text_attr(
-	_in const info::text_attr &text_attr
+	_in const info_type::text_attr &text_attr
 ) const {
 	if (!set_info__text_attr__safe(text_attr))
 		throw exception();

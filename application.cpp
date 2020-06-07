@@ -16,7 +16,7 @@ process::snapshot::~snapshot(
 bool process::snapshot::find(
 	_in _out std::vector<findinfo> &findinfo_s
 ) {
-	auto count = findinfo_s.size();					// осталось заполнить
+	auto count = findinfo_s.size();								// число элементов, которые осталось найти
 
 	for (auto &findinfo : findinfo_s) {
 		assert(findinfo.image_filename);
@@ -66,6 +66,18 @@ application::~application(
 ) noexcept {
 }
 
+void application::read(
+	_out string::list &string_s
+) const {
+	console(_pid).read();
+}
+//---------------------------------------------------------------------------------------------------------------------------------------------
+application::console::screen_buffer::screen_buffer(
+	_in const size_type &size_type
+) :
+	std::vector<char_t>(size_type.x * size_type.y)
+{}
+
 //---------------------------------------------------------------------------------------------------------------------------------------------
 application::console::console(
 	_in process::id pid
@@ -107,13 +119,13 @@ application::console::~console(
 }
 
 bool application::console::get__screen_buffer_info__safe(
-	_out screen_buffer_info &screen_buffer_info
+	_out screen_buffer::info_type &screen_buffer_info
 ) const noexcept {
 	return Winapi::Console::Output::ScreenBufferInfo::Get(_handle, screen_buffer_info);
 }
-application::console::screen_buffer_info application::console::get__screen_buffer_info(
+application::console::screen_buffer::info_type application::console::get__screen_buffer_info(
 ) const {
-	screen_buffer_info screen_buffer_info;
+	screen_buffer::info_type screen_buffer_info;
 	if (get__screen_buffer_info__safe(screen_buffer_info))
 		return screen_buffer_info;
 	throw exception();
@@ -121,6 +133,20 @@ application::console::screen_buffer_info application::console::get__screen_buffe
 
 bool application::console::read__safe(
 ) const noexcept {
+	screen_buffer::info_type screen_buffer__info;
+	if (!get__screen_buffer_info__safe(screen_buffer__info))
+		return false;
+	const screen_buffer::size_type screen_buffer__size {
+		static_cast<decltype(screen_buffer::size_type::x)>(screen_buffer__info.dwSize.X), 
+		static_cast<decltype(screen_buffer::size_type::y)>(screen_buffer__info.srWindow.Bottom - screen_buffer__info.srWindow.Top + 1)
+	};
+	screen_buffer screen_buffer(screen_buffer__size);
+	DWORD NumberOfCharsRead = 0;
+	if (!Winapi::Console::Output::ReadCharacter(
+		_handle, screen_buffer.data(), screen_buffer.size(), {screen_buffer__info.dwSize.X, screen_buffer__info.srWindow.Top}, &NumberOfCharsRead
+	))
+		return false;
+	//assert(NumberOfCharsRead == screen_buffer.size());
 	return true;
 }
 void application::console::read(
