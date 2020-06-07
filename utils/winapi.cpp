@@ -10,16 +10,10 @@ HANDLE StdHandle::Get(
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
-/*static*/ bool Console::ScreenBufferInfo::Get(
-	_in HANDLE hConsoleOutput, _out ScreenBufferInfo &ScreenBufferInfo
+/*static*/ HANDLE Console::Handle::Get(
+	_in Type Type
 ) {
-	return FALSE != ::GetConsoleScreenBufferInfo(hConsoleOutput, &ScreenBufferInfo);
-}
-
-/*static*/ bool Console::TextAttribute::Set(
-	_in HANDLE hConsoleOutput, _in WORD TextAttribute
-) {
-	return FALSE != ::SetConsoleTextAttribute(hConsoleOutput, TextAttribute);
+	return StdHandle::Get(static_cast<DWORD>(Type));
 }
 
 bool Console::Attach(
@@ -30,6 +24,26 @@ bool Console::Attach(
 bool Console::Free(
 ) {
 	return FALSE != ::FreeConsole();
+}
+
+//---------------------------------------------------------------------------------------------------------------------------------------------
+/*static*/ bool Console::Output::ScreenBufferInfo::Get(
+	_in HANDLE hConsoleOutput, _out ScreenBufferInfo &ScreenBufferInfo
+) {
+	return FALSE != ::GetConsoleScreenBufferInfo(hConsoleOutput, &ScreenBufferInfo);
+}
+
+/*static*/ bool Console::Output::TextAttribute::Set(
+	_in HANDLE hConsoleOutput, _in WORD TextAttribute
+) {
+	return FALSE != ::SetConsoleTextAttribute(hConsoleOutput, TextAttribute);
+}
+
+
+/*static*/ bool Console::Output::Read(
+	_in HANDLE hConsoleOutput, _out PCHAR_INFO Buffer, _in COORD BufferSize, _in COORD BufferCoord, _in _out PSMALL_RECT ReadRegion
+) {
+	return FALSE != ::ReadConsoleOutputW(hConsoleOutput, Buffer, BufferSize, BufferCoord, ReadRegion);
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------

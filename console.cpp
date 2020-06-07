@@ -16,7 +16,7 @@ void console::color::clear(
 
 console::console(
 ) : 
-	_handle(Winapi::StdHandle::Get(STD_OUTPUT_HANDLE)),
+	_handle(Winapi::Console::Handle::Get(Winapi::Console::Handle::Output)),
 	_text_attr(get__text_attr())
 {}
 console::~console(
@@ -38,23 +38,23 @@ void console::echo(
 	va_end(args);
 }
 
-bool console::get_info__screen_buffer__safe(
-	_out info::screen_buffer &screen_buffer
+bool console::get__screen_buffer_info__safe(
+	_out info::screen_buffer_info &screen_buffer_info
 ) const noexcept {
-	return Winapi::Console::ScreenBufferInfo::Get(_handle, screen_buffer);
+	return Winapi::Console::Output::ScreenBufferInfo::Get(_handle, screen_buffer_info);
 }
-console::info::screen_buffer console::get_info__screen_buffer(
+console::info::screen_buffer_info console::get__screen_buffer_info(
 ) const {
-	info::screen_buffer screen_buffer;
-	if (get_info__screen_buffer__safe(screen_buffer))
-		return screen_buffer;
+	info::screen_buffer_info screen_buffer_info;
+	if (get__screen_buffer_info__safe(screen_buffer_info))
+		return screen_buffer_info;
 	throw exception();
 }
 
 bool console::set_info__text_attr__safe(
 	_in const info::text_attr &text_attr
 ) const noexcept {
-	return Winapi::Console::TextAttribute::Set(_handle, text_attr);
+	return Winapi::Console::Output::TextAttribute::Set(_handle, text_attr);
 }
 void console::set_info__text_attr(
 	_in const info::text_attr &text_attr
@@ -66,7 +66,7 @@ void console::set_info__text_attr(
 
 console::text_attr console::get__text_attr(
 ) const {
-	return get_info__screen_buffer().wAttributes;
+	return get__screen_buffer_info().wAttributes;
 }
 
 bool console::set__text_attr__safe(

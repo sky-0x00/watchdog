@@ -44,12 +44,12 @@ protected:
 
 private:
 	struct info {
-		typedef Winapi::Console::ScreenBufferInfo screen_buffer;
+		typedef Winapi::Console::Output::ScreenBufferInfo screen_buffer_info;
 		typedef short_t text_attr;
 	};
 
-	bool get_info__screen_buffer__safe(_out info::screen_buffer &screen_buffer) const noexcept;
-	info::screen_buffer get_info__screen_buffer() const;
+	bool get__screen_buffer_info__safe(_out info::screen_buffer_info &screen_buffer_info) const noexcept;
+	info::screen_buffer_info get__screen_buffer_info() const;
 
 	bool set_info__text_attr__safe(_in const info::text_attr &text_attr) const noexcept;
 	void set_info__text_attr(_in const info::text_attr &text_attr) const;

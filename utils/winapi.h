@@ -2,11 +2,7 @@
 
 #include <windows.h>
 #include <tlhelp32.h>
-#include "types.h"
-
-//#ifndef DONOT_UNDEF_KNOWN_MACROS
-//	#undef Process32First
-//#endif
+#include "types.h"		// macros-only
 
 namespace Winapi {
 	typedef LSTATUS Status;
@@ -15,14 +11,26 @@ namespace Winapi {
 		HANDLE Get(_in DWORD Type);
 	}
 	namespace Console {
-		struct ScreenBufferInfo : CONSOLE_SCREEN_BUFFER_INFO {
-			static bool Get(_in HANDLE hConsoleOutput, _out ScreenBufferInfo &ScreenBufferInfo);
-		};
-		struct TextAttribute {
-			static bool Set(_in HANDLE hConsoleOutput, _in WORD TextAttribute);
+		struct Handle {
+			enum /*class*/ Type {
+				Input = STD_INPUT_HANDLE,
+				Output = STD_OUTPUT_HANDLE,
+				Error = STD_ERROR_HANDLE
+			};
+			static HANDLE Get(_in Type Type);
 		};
 		bool Attach(_in DWORD ProcessId);
 		bool Free();
+		
+		namespace Output {
+			struct ScreenBufferInfo : CONSOLE_SCREEN_BUFFER_INFO {
+				static bool Get(_in HANDLE hConsoleOutput, _out ScreenBufferInfo &ScreenBufferInfo);
+			};
+			struct TextAttribute {
+				static bool Set(_in HANDLE hConsoleOutput, _in WORD TextAttribute);
+			};
+			static bool Read(_in HANDLE hConsoleOutput, _out PCHAR_INFO Buffer, _in COORD BufferSize, _in COORD BufferCoord, _in _out PSMALL_RECT ReadRegion);
+		};
 	}
 	namespace Toolhelp32 {
 		HANDLE CreateSnapshot(_in DWORD Flags, DWORD th32ProcessID = 0);

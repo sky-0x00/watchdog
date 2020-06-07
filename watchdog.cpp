@@ -1,7 +1,7 @@
 #include <windows.h>
 #include "config.h"
 #include "console.h"
-#include "app.h"
+#include "application.h"
 
 int main(
 ) {
@@ -10,18 +10,31 @@ int main(
 	//console.color_set({console::color::green}, true);
 	//console.echo(L" ok\n");
 
-	auto hStdOut = Winapi::StdHandle::Get(STD_OUTPUT_HANDLE);
+	WCHAR Buffer[512];
+	DWORD BytesReaded = 0;
+
+	//auto hStdOut = Winapi::StdHandle::Get(STD_OUTPUT_HANDLE);
+	//auto hFile = ::CreateFileW(L"CONOUT$", GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	//auto is_ok = FALSE != ::ReadFile(hFile, Buffer, _countof(Buffer), &BytesReaded, nullptr);
 	auto is_ok = Winapi::Console::Free();
 
-	std::vector<process::snapshot::findinfo> findinfo_s(_countof(config::known_process_image_filenames));
+	std::vector<process::snapshot::findinfo> findinfo_s(_countof(config::profile_s));
 	{
-		auto config__known_process_image_filename = config::known_process_image_filenames;
-		for (auto &findinfo : findinfo_s)
-			findinfo.image_filename = *config__known_process_image_filename++;
+		auto config_profile = config::profile_s;
+		for (auto &findinfo : findinfo_s) {
+			findinfo.image_filename = config_profile->details.process_image_filename;
+			++config_profile;
+		}
 	}
 	is_ok = process::snapshot().find(findinfo_s);
+
 	is_ok = Winapi::Console::Attach(findinfo_s.at(0).id);
 	auto hStdOutNew = Winapi::StdHandle::Get(STD_OUTPUT_HANDLE);
+
+	auto hFile = ::CreateFileW(L"CONOUT$", GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	is_ok = FALSE != ::ReadFile(hFile, Buffer, _countof(Buffer), &BytesReaded, nullptr);
+
+	BytesReaded = 15;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

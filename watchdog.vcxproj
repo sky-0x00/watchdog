@@ -167,7 +167,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="app.cpp" />
+    <ClCompile Include="application.cpp" />
     <ClCompile Include="console.cpp" />
     <ClCompile Include="monitor.cpp" />
     <ClCompile Include="utils\types.cpp" />
@@ -175,7 +175,7 @@
     <ClCompile Include="watchdog.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="app.h" />
+    <ClInclude Include="application.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="console.h" />
     <ClInclude Include="monitor.h" />
