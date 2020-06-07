@@ -1,5 +1,10 @@
 #include <cassert>
+#include <algorithm>
 #include "application.h"
+
+#ifdef max
+	#undef max
+#endif
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
 process::snapshot::snapshot(
@@ -19,7 +24,7 @@ bool process::snapshot::find(
 	auto count = findinfo_s.size();								// число элементов, которые осталось найти
 
 	for (auto &findinfo : findinfo_s) {
-		assert(findinfo.image_filename);
+		assert(findinfo.profile.details.process_image_filename);
 		findinfo.id = 0;
 	}
 	
@@ -32,7 +37,7 @@ bool process::snapshot::find(
 		for (auto &findinfo : findinfo_s) {
 			if (0 == entry.th32ProcessID)
 				continue;
-			if (0 != _wcsicmp(findinfo.image_filename, entry.szExeFile))
+			if (0 != _wcsicmp(findinfo.profile.details.process_image_filename, entry.szExeFile))
 				continue;
 			findinfo.id = entry.th32ProcessID;
 			assert(count);
@@ -56,27 +61,46 @@ bool process::snapshot::find(
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
 application::application(
-	_in pid pid
+	_in const info &info
 ) :
-	_pid(pid)
+	_info(info)
 {
-	assert(_pid);
+	assert(0 != _info.process_id);
 }
 application::~application(
 ) noexcept {
 }
 
-void application::read(
-	_out string::list &string_s
+bool application::check(
 ) const {
-	console(_pid).read();
+	const console::screen_buffer &screen_buffer = console(_info.process_id).read();
+	switch (_info.profile_type) {
+		case config::profile::xmrig:
+			return check_xmrig(screen_buffer);
+		default:
+			throw exception();
+	}
+	return true;
 }
+
+/*static*/ bool application::check_xmrig(
+	_in const console::screen_buffer &screen_buffer
+) {
+	return true;
+}
+
 //---------------------------------------------------------------------------------------------------------------------------------------------
 application::console::screen_buffer::screen_buffer(
-	_in const size_type &size_type
+	_in const rect_type &rect
 ) :
-	std::vector<char_t>(size_type.x * size_type.y)
+	_rect(rect),
+	std::vector<char_t>(rect.x * rect.y)
 {}
+
+const application::console::screen_buffer::rect_type& application::console::screen_buffer::rect(
+) const noexcept {
+	return _rect;
+}
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
 application::console::console(
@@ -132,27 +156,42 @@ application::console::screen_buffer::info_type application::console::get__screen
 }
 
 bool application::console::read__safe(
+	_out screen_buffer &result
 ) const noexcept {
+	result.clear();
+
 	screen_buffer::info_type screen_buffer__info;
 	if (!get__screen_buffer_info__safe(screen_buffer__info))
 		return false;
-	const screen_buffer::size_type screen_buffer__size {
-		static_cast<decltype(screen_buffer::size_type::x)>(screen_buffer__info.dwSize.X), 
-		static_cast<decltype(screen_buffer::size_type::y)>(screen_buffer__info.srWindow.Bottom - screen_buffer__info.srWindow.Top + 1)
+
+	const screen_buffer::rect_type screen_buffer__rect{
+		static_cast<decltype(screen_buffer::rect_type::x)>(screen_buffer__info.dwSize.X),
+		static_cast<decltype(screen_buffer::rect_type::y)>(screen_buffer__info.srWindow.Bottom - screen_buffer__info.srWindow.Top + 1)
 	};
-	screen_buffer screen_buffer(screen_buffer__size);
+	screen_buffer screen_buffer(screen_buffer__rect);
 	DWORD NumberOfCharsRead = 0;
 	if (!Winapi::Console::Output::ReadCharacter(
-		_handle, screen_buffer.data(), screen_buffer.size(), {screen_buffer__info.dwSize.X, screen_buffer__info.srWindow.Top}, &NumberOfCharsRead
+		_handle, screen_buffer.data(), screen_buffer.size(), {0, std::max<decltype(COORD::Y)>(0, screen_buffer__info.dwCursorPosition.Y - screen_buffer__rect.y)}, &NumberOfCharsRead
 	))
 		return false;
 	//assert(NumberOfCharsRead == screen_buffer.size());
+
+	result.swap(screen_buffer);
 	return true;
 }
+
 void application::console::read(
+	_out screen_buffer &screen_buffer
 ) const {
-	if (read__safe())
+	if (read__safe(screen_buffer))
 		return;
+	throw exception();
+}
+application::console::screen_buffer application::console::read(
+) const {
+	screen_buffer screen_buffer;
+	if (read__safe(screen_buffer))
+		return screen_buffer;
 	throw exception();
 }
 

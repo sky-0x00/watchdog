@@ -3,15 +3,12 @@
 #include <vector>
 #include <list>
 #include "utils\winapi.h"
+#include "config.h"
 
 struct process {
 
-	typedef unsigned id;
+	typedef pid_t id;
 	typedef handle_t handle;
-
-	struct image {
-		typedef cstr_t filename;
-	};
 
 	class snapshot {
 	public:
@@ -19,7 +16,7 @@ struct process {
 		~snapshot() noexcept;
 	public:
 		struct findinfo {
-			image::filename image_filename;
+			config::profile profile;
 			id id;
 		};
 		bool find(_in /*image_filename*/ _out /*id*/ std::vector<findinfo> &findinfo_s);
@@ -33,24 +30,35 @@ struct process {
 
 class application {
 public:
-	typedef process::id pid;
+	struct info {
+		process::id process_id;
+		enum config::profile::type profile_type;
+	};
+
 	class console {
 	public:
 		typedef handle_t handle;
-		struct screen_buffer: std::vector<char_t> {
+		class screen_buffer: public std::vector<char_t> {
+		public:
 			typedef Winapi::Console::Output::ScreenBufferInfo info_type;
-			struct size_type {
+			struct rect_type {
 				ushort_t x, y;
 			};
-			screen_buffer(_in const size_type &size);
+		public:
+			screen_buffer(_in const rect_type &rect = {0, 0});
+			const rect_type& rect() const noexcept;
+			//const rect_type& rect(_in const rect_type &rect) noexcept;
+		private:
+			const rect_type _rect;
 		};
 		
 	public:
 		console(_in process::id pid);
 		~console();
 
-		bool read__safe() const noexcept;
-		void read() const;
+		bool read__safe(_out screen_buffer &screen_buffer) const noexcept;
+		void read(_out screen_buffer &screen_buffer) const;
+		screen_buffer read() const;
 
 	protected:
 		static handle attach_safe(_in process::id pid) noexcept;
@@ -66,11 +74,15 @@ public:
 	};
 
 public:
-	application(_in pid pid);
+	application(_in const info &info);
 	~application() noexcept;
-	void read(_out string::list &string_s) const;
+
+public:
+	bool check() const;
 protected:
+	static bool check_xmrig(_in const console::screen_buffer &screen_buffer);
+
 private:
-	const pid _pid;
+	const info _info;
 
 };	// class app
