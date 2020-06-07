@@ -52,16 +52,38 @@ namespace Winapi {
 		void Set(_in Status Status);
 	}
 	namespace Process {
+		struct Current {
+			static DWORD GetId();
+			static HANDLE Get();
+		};
 		HANDLE Open(_in DWORD ProcessId, _in DWORD DesiredAccess, _in bool IsInheritHandle = false);
+		bool OpenToken(_out HANDLE &hToken, _in DWORD DesiredAccess, _in HANDLE hProcess = Current::Get());				// обертка
+		HANDLE OpenToken(_in DWORD DesiredAccess, _in HANDLE hProcess = Current::Get());								// 2nd реализация
 	}
 
-	struct Shutdown {
-		Shutdown(_in LPWSTR MachineName = nullptr);
+	struct SystemShutdown {
+		SystemShutdown(_in LPWSTR MachineName = nullptr);
 	//public:
 		bool Initiate(_in DWORD TimeoutSecs, _in bool IsForceAppsClosed, _in bool IsRebootAfterShutdown, _in LPWSTR Message = nullptr);
 		bool Abort();
 	//public:
 		const LPWSTR MachineName;
+	};
+
+	struct TokenPrivilege {
+		TokenPrivilege(_in LPCWSTR MachineName = nullptr);
+	//public:
+		bool LookupValue(_in LPCWSTR Name, _out LUID &Luid);
+		LUID LookupValue(_in LPCWSTR Name) noexcept(false);
+		
+		// Get(): TODO - см. GetTokenInformation(TokenPrivileges)
+		// Adjust(DisableAllPrivileges = TRUE): TODO
+		// static bool Adjust__DAP_T(_in HANDLE hToken, _in const TOKEN_PRIVILEGES &NewState);
+		// Adjust(DisableAllPrivileges = FALSE):
+		static bool Adjust__DAP_F(_in HANDLE hToken, _in const TOKEN_PRIVILEGES &NewState);
+		static bool Adjust__DAP_F(_in HANDLE hToken, _in const TOKEN_PRIVILEGES &NewState, _out TOKEN_PRIVILEGES &PrevState, _in DWORD PrevState_Size, _out PDWORD pPrevState_SizeReturned = nullptr);
+	//public:
+		const LPCWSTR MachineName;
 	};
 
 }	// namespace Winapi

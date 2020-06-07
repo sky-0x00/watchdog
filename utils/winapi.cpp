@@ -104,22 +104,81 @@ HANDLE Process::Open(
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
-Shutdown::Shutdown(
+SystemShutdown::SystemShutdown(
 	_in LPWSTR MachineName /*= nullptr*/
 ) :
 	MachineName(MachineName)
 {}
 
-bool Shutdown::Initiate(
+bool SystemShutdown::Initiate(
 	_in DWORD TimeoutSecs, _in bool IsForceAppsClosed, _in bool IsRebootAfterShutdown, _in LPWSTR Message /*= nullptr*/
 ) {
 	return FALSE != ::InitiateSystemShutdownW(
 		MachineName, Message, TimeoutSecs, IsForceAppsClosed ? TRUE : FALSE, IsRebootAfterShutdown ? TRUE : FALSE
 	);
 }
-bool Shutdown::Abort(
+bool SystemShutdown::Abort(
 ) {
 	return FALSE != ::AbortSystemShutdownW(MachineName);
+}
+
+//---------------------------------------------------------------------------------------------------------------------------------------------
+/*static*/ HANDLE Process::Current::Get(
+) {
+	return ::GetCurrentProcess();
+}
+/*static*/ DWORD Process::Current::GetId(
+) {
+	return ::GetCurrentProcessId();
+}
+
+bool Process::OpenToken(
+	_out HANDLE &hToken, _in DWORD DesiredAccess, _in HANDLE hProcess /*= Current::Get()*/
+) {
+	return FALSE != ::OpenProcessToken(hProcess, DesiredAccess, &hToken);
+}
+HANDLE Process::OpenToken(
+	_in DWORD DesiredAccess, _in HANDLE hProcess /*= Current::Get()*/
+) {
+	HANDLE hToken = nullptr;
+	return OpenToken(hToken, DesiredAccess, hProcess) ? hToken : nullptr;
+}
+
+//---------------------------------------------------------------------------------------------------------------------------------------------
+TokenPrivilege::TokenPrivilege(
+	_in LPCWSTR MachineName /*= nullptr*/
+) :
+	MachineName(MachineName)
+{}
+
+bool TokenPrivilege::LookupValue(
+	_in LPCWSTR Name, _out LUID &Luid
+) {
+	return FALSE != LookupPrivilegeValueW(MachineName, Name, &Luid);
+}
+LUID TokenPrivilege::LookupValue(
+	_in LPCWSTR Name
+) noexcept(false) {
+	LUID Luid {};
+	if (LookupValue(Name, Luid))
+		return Luid;
+	throw exception();
+}
+
+/*static*/ bool TokenPrivilege::Adjust__DAP_F(
+	_in HANDLE hToken, _in const TOKEN_PRIVILEGES &NewState
+) {
+	return FALSE != ::AdjustTokenPrivileges(hToken, FALSE, const_cast<PTOKEN_PRIVILEGES>(&NewState), 0, nullptr, nullptr);
+}
+
+/*static*/ bool TokenPrivilege::Adjust__DAP_F(
+	_in HANDLE hToken, _in const TOKEN_PRIVILEGES &NewState, _out TOKEN_PRIVILEGES &PrevState, _in DWORD PrevState_Size, _out PDWORD pPrevState_SizeReturned /*= nullptr*/
+) {
+	DWORD PrevState_SizeReturned = 0;
+	const auto IsOk = FALSE != ::AdjustTokenPrivileges(hToken, FALSE, const_cast<PTOKEN_PRIVILEGES>(&NewState), PrevState_Size, &PrevState, &PrevState_SizeReturned);
+	if (pPrevState_SizeReturned)
+		*pPrevState_SizeReturned = PrevState_SizeReturned;
+	return IsOk;
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------

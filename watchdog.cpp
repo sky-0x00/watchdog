@@ -11,19 +11,23 @@ int main(
 	//console.color_set({console::color::green}, true);
 	//console.echo(L" ok\n");
 
-	auto is_ok = Winapi::Console::Free();
+	Winapi::Console::Free();
 	std::vector<process::snapshot::findinfo> findinfo_s(_countof(config::profile_s));
 	{
 		auto profile = config::profile_s;
 		for (auto &findinfo : findinfo_s)
 			findinfo.profile = *profile++;
 	}
-	is_ok = process::snapshot().find(findinfo_s);
-
+	
+	process::snapshot().find(findinfo_s);
 	const auto &findinfo = findinfo_s.at(0);
 	if (0 != findinfo.id)
-		is_ok = application({findinfo.id, findinfo.profile.type}).check();
-	is_ok = system::reboot();
+		return ERROR_NOT_FOUND;
+
+	if (!application({ findinfo.id, findinfo.profile.type }).check())
+		return system::reboot() ? ERROR_SYSTEM_SHUTDOWN : Winapi::LastError::Get();
+
+	return ERROR_SUCCESS;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

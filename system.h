@@ -6,7 +6,7 @@ class system {
 public:
 	static bool reboot(_in unsigned timeout_sec = 0);
 protected:
-	struct privileges {
+	struct privilege {
 		static bool adjust();
 	};
 };
