@@ -3,6 +3,7 @@
 #define _in
 #define _out
 
+
 typedef unsigned char byte_t;
 
 typedef void void_t;
@@ -22,6 +23,7 @@ typedef unsigned int uint_t;
 typedef void *handle_t;					// handle
 typedef unsigned pid_t;					// process-id
 
+
 class exception {
 public:
 	typedef unsigned code;
@@ -33,16 +35,18 @@ private:
 	const code _code;
 };
 
-#include <string>
-//typedef std::wstring string;
 
+//#include <string>
+//typedef std::wstring string;
+//
 //#include <vector>
 //#include <list>
-struct string : std::wstring {
-	//__if_exists(std::vector) {
-	//	typedef std::vector<string> vector;
-	//}
-	//__if_exists(std::list) {
-	//	typedef std::list<string> list;
-	//}
-};
+//struct string : std::wstring {
+//	//__if_exists(std::vector) {
+//	//	typedef std::vector<string> vector;
+//	//}
+//	//__if_exists(std::list) {
+//	//	typedef std::list<string> list;
+//	//}
+//};
+
