@@ -5,7 +5,11 @@
 #include "types.h"		// macros-only
 
 namespace Winapi {
-	typedef LSTATUS Status;
+	struct Status {
+		typedef LSTATUS Value;
+		static constexpr Value Success = ERROR_SUCCESS;
+		static constexpr Value NoMoreFiles = ERROR_NO_MORE_FILES;
+	};	
 
 	namespace StdHandle {
 		HANDLE Get(_in DWORD Type);
@@ -48,8 +52,8 @@ namespace Winapi {
 		bool Close(_in HANDLE hObject);
 	}
 	namespace LastError {
-		Status Get();
-		void Set(_in Status Status);
+		Status::Value Get();
+		void Set(_in Status::Value Status);
 	}
 	namespace Process {
 		struct Current {
@@ -84,6 +88,11 @@ namespace Winapi {
 		static bool Adjust__DAP_F(_in HANDLE hToken, _in const TOKEN_PRIVILEGES &NewState, _out TOKEN_PRIVILEGES &PrevState, _in DWORD PrevState_Size, _out PDWORD pPrevState_SizeReturned = nullptr);
 	//public:
 		const LPCWSTR MachineName;
+	};
+
+	namespace Time {
+		void GetLocal(_out SYSTEMTIME &Time);
+		SYSTEMTIME GetLocal();
 	};
 
 }	// namespace Winapi

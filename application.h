@@ -5,35 +5,10 @@
 #include "utils\winapi.h"
 #include "config.h"
 
-struct process {
-
-	typedef pid_t id;
-	typedef handle_t handle;
-
-	class snapshot {
-	public:
-		snapshot();
-		~snapshot() noexcept;
-	public:
-		struct findinfo {
-			config::profile profile;
-			id id;
-		};
-		bool find(_in /*image_filename*/ _out /*id*/ std::vector<findinfo> &findinfo_s);
-	private:
-		typedef handle_t handle;
-		const handle _handle;
-	};
-
-};	// struct process
-
 
 class application {
 public:
-	struct info {
-		process::id process_id;
-		enum config::profile::type profile_type;
-	};
+	typedef config::profile::map_e<config::profile::details_traits::information>::value_type information;
 
 	class console {
 	public:
@@ -53,7 +28,7 @@ public:
 		};
 		
 	public:
-		console(_in process::id pid);
+		console(_in pid_t pid);
 		~console();
 
 		bool read__safe(_out screen_buffer &screen_buffer) const noexcept;
@@ -61,8 +36,8 @@ public:
 		screen_buffer read() const;
 
 	protected:
-		static handle attach_safe(_in process::id pid) noexcept;
-		static handle attach(_in process::id pid);
+		static handle attach_safe(_in pid_t pid) noexcept;
+		static handle attach(_in pid_t pid);
 		static bool detach_safe() noexcept;
 		static void detach();
 
@@ -74,7 +49,7 @@ public:
 	};
 
 public:
-	application(_in const info &info);
+	application(_in const information &information);
 	~application() noexcept;
 
 public:
@@ -83,6 +58,6 @@ protected:
 	static bool check_xmrig(_in const console::screen_buffer &screen_buffer);
 
 private:
-	const info _info;
+	const information _information;
 
 };	// class app

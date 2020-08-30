@@ -108,7 +108,7 @@
       <ProgramDatabaseFile>$(SolutionDir)..\..\build-symbols\x32-debug\$(TargetName).pdb</ProgramDatabaseFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy /y "$(TargetPath)" "\\pc-scremote\c$\debug\" /b</Command>
+      <Command>copy /y "$(TargetPath)" "z:\debug\" /b</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -175,12 +175,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="application.cpp" />
+    <ClCompile Include="config.cpp" />
     <ClCompile Include="console.cpp" />
     <ClCompile Include="monitor.cpp" />
     <ClCompile Include="system.cpp" />
     <ClCompile Include="utils\types.cpp" />
     <ClCompile Include="utils\winapi.cpp" />
-    <ClCompile Include="watchdog.cpp" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h" />

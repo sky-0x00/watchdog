@@ -1,5 +1,5 @@
 #include <windows.h>
-#include <stdio.h>
+#include <vector>
 #include "console.h"
 
 console::color::color(
@@ -15,13 +15,17 @@ void console::color::clear(
 
 
 console::console(
-) : 
-	_handle(Winapi::Console::Handle::Get(Winapi::Console::Handle::Output)),
-	_text_attr(get__text_attr())
+) :
+	_handle(Winapi::Console::Handle::Get(Winapi::Console::Handle::Output)), _text_attr(0)
 {}
 console::~console(
 ) {
 	color_reset__safe();
+}
+
+void console::attach(
+) {
+	_text_attr = get__text_attr();
 }
 
 void console::echo(
@@ -136,3 +140,89 @@ void console::color_reset(
 	//if (!color_reset__safe())
 	//	throw exception();
 }
+
+//---------------------------------------------------------------------------------------------------------------------
+_set_lasterror(bool) console::attach__s(
+	_in pid_t pid /*= -1(ATTACH_PARENT_PROCESS)*/
+) noexcept {
+	return FALSE != ::AttachConsole(pid);
+}
+void console::attach(
+	_in pid_t pid /*= -1(ATTACH_PARENT_PROCESS)*/
+) {
+	if (attach__s(pid))
+		return;
+	throw ::GetLastError();
+}
+
+_set_lasterror(bool) console::allocate__s(
+) noexcept {
+	return FALSE != ::AllocConsole();
+}
+void console::allocate(
+) {
+	if (allocate__s())
+		return;
+	throw ::GetLastError();
+}
+
+_set_lasterror(bool) console::free__s(
+) noexcept {
+	return FALSE != ::FreeConsole();
+}
+void console::free(
+) {
+	if (free__s())
+		return;
+	throw ::GetLastError();
+}
+
+_set_lasterror(bool) console::get__title__s(
+	_out string_t &title
+) noexcept {
+	std::vector<char_t> buffer(64);
+	auto size = ::GetConsoleTitleW(buffer.data(), buffer.size());
+	if (0 == size)
+		return false;
+	if (size > buffer.size()) {
+		buffer.resize(size);
+		size = ::GetConsoleTitleW(buffer.data(), buffer.size());
+		if (0 == size)
+			return false;
+	}
+	title.assign(buffer.data(), size);
+	return true;
+}
+string_t console::get__title(
+) {
+	string_t title;
+	if (get__title__s(title))
+		return title;
+	throw ::GetLastError();
+}
+
+_set_lasterror(bool) console::get__original_title__s(
+	_out string_t &title
+) noexcept {
+	std::vector<char_t> buffer(64);
+	auto size = ::GetConsoleOriginalTitleW(buffer.data(), buffer.size());
+	if (0 == size)
+		return false;
+	if (size > buffer.size()) {
+		buffer.resize(size);
+		size = ::GetConsoleOriginalTitleW(buffer.data(), buffer.size());
+		if (0 == size)
+			return false;
+	}
+	title.assign(buffer.data(), size);
+	return true;
+}
+string_t console::get__original_title(
+) {
+	string_t original_title;
+	if (get__original_title__s(original_title))
+		return original_title;
+	throw ::GetLastError();
+}
+
+//---------------------------------------------------------------------------------------------------------------------

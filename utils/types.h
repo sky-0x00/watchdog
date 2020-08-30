@@ -3,6 +3,7 @@
 #define _in
 #define _out
 
+#define _set_lasterror(x) x
 
 typedef unsigned char byte_t;
 
@@ -36,9 +37,9 @@ private:
 };
 
 
-//#include <string>
-//typedef std::wstring string;
-//
+#include <string>
+typedef std::wstring string_t;
+
 //#include <vector>
 //#include <list>
 //struct string : std::wstring {

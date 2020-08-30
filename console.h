@@ -38,6 +38,9 @@ public:
 	~console();
 
 public:
+	void attach();
+
+public:
 	void echo(_in cstr_t format, _in ...) const;	
 protected:
 	void echo(_in cstr_t format, _in va_list args) const;
@@ -55,18 +58,29 @@ private:
 	void set_info__text_attr(_in const info_type::text_attr &text_attr) const;
 
 private:
-	struct handle {
-		typedef handle_t value;
-	};
-	const handle::value _handle;
+	typedef handle_t handle;
+	const handle _handle;
 
-protected:
+private:
 	typedef short_t text_attr;
 
 	text_attr get__text_attr() const;
 	bool set__text_attr__safe(_in const text_attr &text_attr) const noexcept;
 	void set__text_attr(_in const text_attr &text_attr) const;
 
-	const text_attr _text_attr;
+	text_attr _text_attr;
+
+/*static*/ public:
+	_set_lasterror(bool) attach__s(_in pid_t pid = -1/*ATTACH_PARENT_PROCESS*/) noexcept;
+	void attach(_in pid_t pid = -1/*ATTACH_PARENT_PROCESS*/);
+	_set_lasterror(bool) allocate__s() noexcept;
+	void allocate();
+	_set_lasterror(bool) free__s() noexcept;
+	void free();
+
+	_set_lasterror(bool) get__title__s(_out string_t &title) noexcept;
+	string_t get__title();
+	_set_lasterror(bool) get__original_title__s(_out string_t &title) noexcept;
+	string_t get__original_title();
 
 };	// class console

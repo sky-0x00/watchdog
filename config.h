@@ -1,35 +1,29 @@
 #pragma once
 
-#include "utils\types.h"		// cstr_t
+#include <map>
+#include "utils\types.h"		// cstr_t, pid_t
 
-struct config {
+namespace config {
 
 	struct profile {
+		typedef unsigned count;
 		enum /*class*/ type {
 			xmrig = 1
 		};
-		struct details {
+		enum /*class*/ details_traits {
+			search = 1, information
+		};
+		template <details_traits> struct details;
+		template <> struct details<details_traits::search> {
 			cstr_t process_image_filename;
 		};
+		template <> struct details<details_traits::information> {
+			pid_t process_id;
+		};
 
-		//inline profile(
-		//	_in type type, _in const details &details
-		//) :
-		//	type(type), details(details)
-		//{}
-		//inline profile& operator =(
-		//	_in const profile &profile
-		//) {
-		//	type = profile.type;
-		//	details = profile.details;
-		//	return *this;
-		//}
+		template <typename details> using map_t = std::map<type, details>;
+		template <details_traits details_traits> using map_e = std::map<type, details<details_traits>>;
 
-		type type;
-		details details;
-	};
-
-	static constexpr profile profile_s[] {
-		{ profile::xmrig, { L"xmrig.exe" } }
-	};
+		static const map_e<details_traits::search> map;
+	};	
 };

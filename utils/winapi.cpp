@@ -86,12 +86,12 @@ bool Handle::Close(
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
-Status LastError::Get(
+Status::Value LastError::Get(
 ) {
 	return ::GetLastError();
 }
 void LastError::Set(
-	_in Status Status
+	_in Status::Value Status
 ) {
 	::SetLastError(Status);
 }
@@ -179,6 +179,19 @@ LUID TokenPrivilege::LookupValue(
 	if (pPrevState_SizeReturned)
 		*pPrevState_SizeReturned = PrevState_SizeReturned;
 	return IsOk;
+}
+
+//---------------------------------------------------------------------------------------------------------------------------------------------
+void Time::GetLocal(
+	_out SYSTEMTIME &Time
+) {
+	::GetLocalTime(&Time);
+}
+SYSTEMTIME Time::GetLocal(
+) {
+	SYSTEMTIME Time;
+	GetLocal(Time);
+	return Time;
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
