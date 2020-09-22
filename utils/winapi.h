@@ -4,7 +4,16 @@
 #include <tlhelp32.h>
 #include "types.h"		// macros-only
 
+#ifdef GetFullPathName
+	#undef GetFullPathName
+#endif
+
 namespace Winapi {
+	struct Handle {
+		typedef HANDLE Value;
+		static _set_lasterror(bool) Close(_in Handle::Value hValue) noexcept;
+	};
+	
 	struct Status {
 		typedef LSTATUS Value;
 		static constexpr Value Success = ERROR_SUCCESS;
@@ -12,7 +21,7 @@ namespace Winapi {
 	};	
 
 	namespace StdHandle {
-		HANDLE Get(_in DWORD Type);
+		Handle::Value Get(_in DWORD Type);
 	}
 	namespace Console {
 		struct Handle {
@@ -21,7 +30,8 @@ namespace Winapi {
 				Output = STD_OUTPUT_HANDLE,
 				Error = STD_ERROR_HANDLE
 			};
-			static HANDLE Get(_in Type Type);
+			typedef Winapi::Handle::Value Value;
+			static Value Get(_in Type Type);
 		};
 		bool Attach(_in DWORD ProcessId);
 		bool Free();
@@ -48,22 +58,68 @@ namespace Winapi {
 			bool Next(_in HANDLE hSnapshot, _out Entry &Entry);
 		}		
 	}
-	namespace Handle {
-		bool Close(_in HANDLE hObject);
-	}
 	namespace LastError {
 		Status::Value Get();
 		void Set(_in Status::Value Status);
 	}
-	namespace Process {
-		struct Current {
-			static DWORD GetId();
-			static HANDLE Get();
-		};
-		HANDLE Open(_in DWORD ProcessId, _in DWORD DesiredAccess, _in bool IsInheritHandle = false);
-		bool OpenToken(_out HANDLE &hToken, _in DWORD DesiredAccess, _in HANDLE hProcess = Current::Get());				// обертка
-		HANDLE OpenToken(_in DWORD DesiredAccess, _in HANDLE hProcess = Current::Get());								// 2nd реализация
+	
+	namespace Token {
+		typedef Handle::Value Handle;
 	}
+	
+	namespace Process {
+
+		typedef Handle::Value Handle;
+		typedef DWORD Id;
+
+		struct Current {
+			static Id GetId();
+			static Handle Get();
+		};
+
+		struct StartupInfo: STARTUPINFOW {
+			StartupInfo();
+		};
+		struct StartupInfoEx: STARTUPINFOEXW {
+			StartupInfoEx();
+		};
+
+		struct SecurityAttributes: SECURITY_ATTRIBUTES {
+			SecurityAttributes(_in bool IsInheritHandle);
+		};
+
+		_set_lasterror(bool) Create(
+			_out PROCESS_INFORMATION  &Information,
+			_in LPCWSTR               ApplicationName,
+			_in LPWSTR                CommandLine,
+			_in DWORD                 CreationFlags,
+			_in StartupInfo			  &StartupInfo,			
+			_in bool                  IsInheritHandles = false,
+			_in const SecurityAttributes *saProcess = nullptr,
+			_in const SecurityAttributes *saThread = nullptr,
+			_in LPCWSTR               CurrentDirectory = nullptr,
+			_in LPVOID                Environment = nullptr
+		) noexcept;
+		_set_lasterror(bool) Create(
+			_out PROCESS_INFORMATION  &Information,
+			_in LPCWSTR               ApplicationName,
+			_in LPWSTR                CommandLine,
+			_in DWORD                 CreationFlags,				// также установить EXTENDED_STARTUPINFO_PRESENT
+			_in StartupInfoEx		  &StartupInfoEx,
+			_in bool                  IsInheritHandles = false,
+			_in const SecurityAttributes *saProcess = nullptr,
+			_in const SecurityAttributes *saThread = nullptr,
+			_in LPCWSTR               CurrentDirectory = nullptr,
+			_in LPVOID                Environment = nullptr
+		) noexcept;
+
+		_set_lasterror(bool) Open(_out Handle &hProcess, _in Id Id, _in DWORD DesiredAccess, _in bool IsInheritHandle = false) noexcept;
+		_set_lasterror(Handle) Open(_in Id Id, _in DWORD DesiredAccess, _in bool IsInheritHandle = false) noexcept;
+
+		_set_lasterror(bool) OpenToken(_out Token::Handle &hToken, _in DWORD DesiredAccess, _in Handle hProcess = Current::Get()) noexcept;				// обертка
+		_set_lasterror(Token::Handle) OpenToken(_in DWORD DesiredAccess, _in Handle hProcess = Current::Get()) noexcept;									// 2nd реализация
+
+	}	// namespace Process
 
 	struct SystemShutdown {
 		SystemShutdown(_in LPWSTR MachineName = nullptr);
@@ -84,15 +140,27 @@ namespace Winapi {
 		// Adjust(DisableAllPrivileges = TRUE): TODO
 		// static bool Adjust__DAP_T(_in HANDLE hToken, _in const TOKEN_PRIVILEGES &NewState);
 		// Adjust(DisableAllPrivileges = FALSE):
-		static bool Adjust__DAP_F(_in HANDLE hToken, _in const TOKEN_PRIVILEGES &NewState);
-		static bool Adjust__DAP_F(_in HANDLE hToken, _in const TOKEN_PRIVILEGES &NewState, _out TOKEN_PRIVILEGES &PrevState, _in DWORD PrevState_Size, _out PDWORD pPrevState_SizeReturned = nullptr);
+		static bool Adjust(_in HANDLE hToken, _in const TOKEN_PRIVILEGES &NewState);
+		static bool Adjust(_in HANDLE hToken, _in const TOKEN_PRIVILEGES &NewState, _out TOKEN_PRIVILEGES &PrevState, _in DWORD PrevState_Size, _out PDWORD pPrevState_SizeReturned = nullptr);
 	//public:
 		const LPCWSTR MachineName;
 	};
 
 	namespace Time {
-		void GetLocal(_out SYSTEMTIME &Time);
-		SYSTEMTIME GetLocal();
-	};
+		void GetLocal(_out SYSTEMTIME &Time) noexcept;
+		SYSTEMTIME GetLocal() noexcept;
+	}
+
+	namespace File {
+		
+		DWORD GetFullPathName(
+			_in LPCWSTR	FileName,
+			_out LPWSTR	Buffer,
+			_in DWORD	BufferLength,
+			_out _optional LPWSTR *pFilePart = nullptr
+		) noexcept;
+
+	}	// namespace File
+	
 
 }	// namespace Winapi

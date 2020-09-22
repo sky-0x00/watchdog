@@ -3,6 +3,7 @@
 #include <windows.h>		// SYSTEMTIME(minwinbase.h)
 #include <vector>
 #include "config.h"
+#include "utils\winapi.h"
 
 class system {
 public:
@@ -27,8 +28,16 @@ private:
 
 struct process {
 
-	typedef pid_t process_id;
+	typedef pid_t id;
 	typedef handle_t handle;
+
+	struct image {
+		static string_t normilize_path(_in cstr_t path);
+		static _set_lasterror(cstr_t) normilize_path__s(_in cstr_t path, _out string_t &result) noexcept;
+
+		static string_t get_path(_in process::handle h_process = Winapi::Process::Current::Get());
+		static _set_lasterror(cstr_t) get_path__s(_out string_t &path, _in process::handle h_process = Winapi::Process::Current::Get()) noexcept;
+	};
 
 	class snapshot {
 	public:
@@ -44,5 +53,23 @@ struct process {
 		const handle _handle;
 	};
 
+	id get_parent();
+
 };	// struct process
+
+class handle {
+public:
+	typedef handle_t value;
+public:
+	handle(_in value value = nullptr) noexcept;
+	handle(_in const handle &handle) = delete;
+	handle(_in _out handle &&handle) noexcept;
+	handle& operator =(_in const handle &handle) = delete;
+	handle& operator =(_in _out handle &&handle);
+	~handle() noexcept;
+	operator value() const noexcept;
+	_set_lasterror(bool) close() noexcept;
+private:
+	value _value;
+};
 

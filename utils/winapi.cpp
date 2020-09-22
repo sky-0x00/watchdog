@@ -3,14 +3,14 @@
 using namespace Winapi;
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
-HANDLE StdHandle::Get(
+Handle::Value StdHandle::Get(
 	_in DWORD Type
 ) {
 	return ::GetStdHandle(Type);
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
-/*static*/ HANDLE Console::Handle::Get(
+/*static*/ Console::Handle::Value Console::Handle::Get(
 	_in Type Type
 ) {
 	return StdHandle::Get(static_cast<DWORD>(Type));
@@ -79,10 +79,10 @@ bool Toolhelp32::Process::Next(
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
-bool Handle::Close(
-	_in HANDLE hObject
-) {
-	return ::CloseHandle(hObject);
+/*static*/ bool Handle::Close(
+	_in Handle::Value hValue
+) noexcept {
+	return FALSE != ::CloseHandle(hValue);
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
@@ -94,13 +94,6 @@ void LastError::Set(
 	_in Status::Value Status
 ) {
 	::SetLastError(Status);
-}
-
-//---------------------------------------------------------------------------------------------------------------------------------------------
-HANDLE Process::Open(
-	_in DWORD ProcessId, _in DWORD DesiredAccess, _in bool IsInheritHandle /*= false*/
-) {
-	return ::OpenProcess(DesiredAccess, IsInheritHandle ? TRUE : FALSE, ProcessId);
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
@@ -122,26 +115,98 @@ bool SystemShutdown::Abort(
 	return FALSE != ::AbortSystemShutdownW(MachineName);
 }
 
-//---------------------------------------------------------------------------------------------------------------------------------------------
-/*static*/ HANDLE Process::Current::Get(
+//-- Process::Current -------------------------------------------------------------------------------------------------------------------------------------------
+/*static*/ Process::Handle Process::Current::Get(
 ) {
 	return ::GetCurrentProcess();
 }
-/*static*/ DWORD Process::Current::GetId(
+/*static*/ Process::Id Process::Current::GetId(
 ) {
 	return ::GetCurrentProcessId();
 }
 
-bool Process::OpenToken(
-	_out HANDLE &hToken, _in DWORD DesiredAccess, _in HANDLE hProcess /*= Current::Get()*/
-) {
+//-- Process::StartupInfo,StartupInfoEx -------------------------------------------------------------------------------------------------------------------------------------------
+Process::StartupInfo::StartupInfo(
+) :
+	STARTUPINFOW {sizeof(STARTUPINFOW)}
+{}
+Process::StartupInfoEx::StartupInfoEx(
+) : 
+	STARTUPINFOEXW {{sizeof(STARTUPINFOW)}}
+{}
+
+//-- Process::SecurityAttributes -------------------------------------------------------------------------------------------------------------------------------------------
+Process::SecurityAttributes::SecurityAttributes(
+	_in bool IsInheritHandle
+) :
+	SECURITY_ATTRIBUTES {sizeof(SECURITY_ATTRIBUTES)}
+{
+	bInheritHandle = IsInheritHandle ? TRUE : FALSE;
+}
+
+//-- Process -------------------------------------------------------------------------------------------------------------------------------------------
+_set_lasterror(Process::Handle) Process::Open(
+	_in Id Id, _in DWORD DesiredAccess, _in bool IsInheritHandle /*= false*/
+) noexcept {
+	return ::OpenProcess(DesiredAccess, IsInheritHandle ? TRUE : FALSE, Id);
+}
+_set_lasterror(bool) Process::Open(
+	_out Handle &hProcess, _in Id Id, _in DWORD DesiredAccess, _in bool IsInheritHandle /*= false*/
+) noexcept {
+	hProcess = Open(Id, DesiredAccess, IsInheritHandle);
+	return nullptr != hProcess;
+}
+
+_set_lasterror(bool) Process::OpenToken(
+	_out Token::Handle &hToken, _in DWORD DesiredAccess, _in Handle hProcess /*= Current::Get()*/
+) noexcept {
 	return FALSE != ::OpenProcessToken(hProcess, DesiredAccess, &hToken);
 }
-HANDLE Process::OpenToken(
-	_in DWORD DesiredAccess, _in HANDLE hProcess /*= Current::Get()*/
-) {
-	HANDLE hToken = nullptr;
+_set_lasterror(Token::Handle) Process::OpenToken(
+	_in DWORD DesiredAccess, _in Handle hProcess /*= Current::Get()*/
+) noexcept {
+	Token::Handle hToken /*= nullptr*/;
 	return OpenToken(hToken, DesiredAccess, hProcess) ? hToken : nullptr;
+}
+
+_set_lasterror(bool) Process::Create(
+	_out PROCESS_INFORMATION &Information,
+	_in LPCWSTR               ApplicationName,
+	_in LPWSTR                CommandLine,
+	_in DWORD                 CreationFlags,
+	_in StartupInfo			  &StartupInfo,
+	_in bool                  IsInheritHandles /*= false*/,
+	_in const SecurityAttributes *saProcess /*= nullptr*/,
+	_in const SecurityAttributes *saThread /*= nullptr*/,
+	_in LPCWSTR               CurrentDirectory /*= nullptr*/,
+	_in LPVOID                Environment /*= nullptr*/
+) noexcept {
+	return ::CreateProcessW(
+		ApplicationName, CommandLine, 
+		reinterpret_cast<LPSECURITY_ATTRIBUTES>(const_cast<SecurityAttributes*>(saProcess)), reinterpret_cast<LPSECURITY_ATTRIBUTES>(const_cast<SecurityAttributes*>(saThread)),
+		IsInheritHandles ? TRUE : FALSE, CreationFlags, Environment, CurrentDirectory,
+		&StartupInfo, &Information
+	);
+}
+_set_lasterror(bool) Process::Create(
+	_out PROCESS_INFORMATION &Information,
+	_in LPCWSTR               ApplicationName,
+	_in LPWSTR                CommandLine,
+	_in DWORD                 CreationFlags,				// также установить EXTENDED_STARTUPINFO_PRESENT
+	_in StartupInfoEx		  &StartupInfoEx,
+	_in bool                  IsInheritHandles /*= false*/,
+	_in const SecurityAttributes *saProcess /*= nullptr*/,
+	_in const SecurityAttributes *saThread /*= nullptr*/,
+	_in LPCWSTR               CurrentDirectory /*= nullptr*/,
+	_in LPVOID                Environment /*= nullptr*/
+) noexcept {
+	CreationFlags |= EXTENDED_STARTUPINFO_PRESENT;
+	return ::CreateProcessW(
+		ApplicationName, CommandLine,
+		reinterpret_cast<LPSECURITY_ATTRIBUTES>(const_cast<SecurityAttributes*>(saProcess)), reinterpret_cast<LPSECURITY_ATTRIBUTES>(const_cast<SecurityAttributes*>(saThread)),
+		IsInheritHandles ? TRUE : FALSE, CreationFlags, Environment, CurrentDirectory,
+		&StartupInfoEx.StartupInfo, &Information
+	);
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
@@ -165,13 +230,13 @@ LUID TokenPrivilege::LookupValue(
 	throw exception();
 }
 
-/*static*/ bool TokenPrivilege::Adjust__DAP_F(
+/*static*/ bool TokenPrivilege::Adjust(
 	_in HANDLE hToken, _in const TOKEN_PRIVILEGES &NewState
 ) {
 	return FALSE != ::AdjustTokenPrivileges(hToken, FALSE, const_cast<PTOKEN_PRIVILEGES>(&NewState), 0, nullptr, nullptr);
 }
 
-/*static*/ bool TokenPrivilege::Adjust__DAP_F(
+/*static*/ bool TokenPrivilege::Adjust(
 	_in HANDLE hToken, _in const TOKEN_PRIVILEGES &NewState, _out TOKEN_PRIVILEGES &PrevState, _in DWORD PrevState_Size, _out PDWORD pPrevState_SizeReturned /*= nullptr*/
 ) {
 	DWORD PrevState_SizeReturned = 0;
@@ -184,14 +249,24 @@ LUID TokenPrivilege::LookupValue(
 //---------------------------------------------------------------------------------------------------------------------------------------------
 void Time::GetLocal(
 	_out SYSTEMTIME &Time
-) {
+) noexcept {
 	::GetLocalTime(&Time);
 }
 SYSTEMTIME Time::GetLocal(
-) {
+) noexcept {
 	SYSTEMTIME Time;
 	GetLocal(Time);
 	return Time;
+}
+
+//---------------------------------------------------------------------------------------------------------------------------------------------
+DWORD File::GetFullPathName(
+	_in LPCWSTR	FileName,
+	_out LPWSTR	Buffer,
+	_in DWORD	BufferLength,
+	_out _optional LPWSTR *pFilePart /*= nullptr*/
+) noexcept {
+	return ::GetFullPathNameW(FileName, BufferLength, Buffer, pFilePart);
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------

@@ -6,13 +6,16 @@
 namespace config {
 
 	struct profile {
-		typedef unsigned count;
+		
+		//typedef unsigned count;
+
 		enum /*class*/ type {
 			xmrig = 1
 		};
 		enum /*class*/ details_traits {
 			search = 1, information
 		};
+
 		template <details_traits> struct details;
 		template <> struct details<details_traits::search> {
 			cstr_t process_image_filename;

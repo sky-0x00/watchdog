@@ -1,19 +1,17 @@
 #include <cassert>
 #include "system.h"
-#include "utils\winapi.h"
 
 /*protected static*/ bool system::privilege::adjust(
 ) {
 	const auto tHandle = Winapi::Process::OpenToken(TOKEN_ADJUST_PRIVILEGES|TOKEN_QUERY);
 	if (!tHandle)
 		return false;
-	
 	// auto-close: tHandle
 	std::unique_ptr<std::remove_pointer<decltype(tHandle)>::type, decltype(&Winapi::Handle::Close)> Token(tHandle, &Winapi::Handle::Close);
 
 	TOKEN_PRIVILEGES tPrivileges {1};
 	tPrivileges.Privileges[0] = { Winapi::TokenPrivilege().LookupValue(SE_SHUTDOWN_NAME), SE_PRIVILEGE_ENABLED };
-	if (!Winapi::TokenPrivilege::Adjust__DAP_F(tHandle, tPrivileges))
+	if (!Winapi::TokenPrivilege::Adjust(tHandle, tPrivileges))
 		return false;
 
 	return true;
@@ -112,6 +110,90 @@ process::snapshot::find_out process::snapshot::find(
 	if (Winapi::Status::NoMoreFiles == Winapi::LastError::Get())
 		return out;
 	throw exception();
+}
+
+//-- process::image -------------------------------------------------------------------------------------------------------------------------------------------
+/*static*/ _set_lasterror(cstr_t) process::image::normilize_path__s(
+	_in cstr_t path, _out string_t &result
+) noexcept {
+	auto size = Winapi::File::GetFullPathName(path, nullptr, 0);
+	if (0 == size)
+		return nullptr;
+	std::vector<char_t> buffer(size);
+	size = Winapi::File::GetFullPathName(path, buffer.data(), size);
+	if (size >= buffer.size())
+		return nullptr;
+	result.assign(buffer.data(), size);
+	return result.c_str();
+}
+/*static*/ string_t process::image::normilize_path(
+	_in cstr_t path
+) {
+	string_t result;
+	if (normilize_path__s(path, result))
+		return result;
+	throw exception();
+}
+
+/*static*/ string_t process::image::get_path(
+	_in process::handle h_process /*= Winapi::Process::Current::Get()*/
+) {
+	return L"";
+}
+/*static*/ _set_lasterror(cstr_t) process::image::get_path__s(
+	_out string_t &path, _in process::handle h_process /*= Winapi::Process::Current::Get()*/
+) noexcept {
+	return nullptr;
+}
+
+//-- process -------------------------------------------------------------------------------------------------------------------------------------------
+process::id process::get_parent(
+) {
+	return 0;	// DUMMY
+}
+
+//-- handle -------------------------------------------------------------------------------------------------------------------------------------------
+handle::handle(
+	_in value value /*= nullptr*/
+) noexcept :
+	_value(value)
+{}
+handle::handle(
+	_in _out handle &&handle
+) noexcept :
+	_value(std::exchange(handle._value, nullptr))
+{}
+
+handle::~handle(
+) noexcept {
+	if (_value)
+		Winapi::Handle::Close(_value);
+}
+
+handle::operator value(
+) const noexcept {
+	return _value;
+}
+
+handle& handle::operator =(
+	_in _out handle &&handle
+) {
+	assert(!_value);
+	_value = std::exchange(handle._value, nullptr);
+	return *this;
+}
+
+_set_lasterror(bool) handle::close(
+) noexcept {
+	if (!_value) {
+		Winapi::LastError::Set(ERROR_INVALID_HANDLE);
+		return true;
+	}
+	if (Winapi::Handle::Close(_value)) {
+		Winapi::LastError::Set(ERROR_SUCCESS);
+		return true;
+	}
+	return false;
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------

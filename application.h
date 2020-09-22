@@ -1,63 +1,58 @@
 #pragma once
 
-#include <vector>
-#include <list>
-#include "utils\winapi.h"
+#include <variant>
+#include "utils\types.h"
 #include "config.h"
-
+#include "system.h"
 
 class application {
-public:
-	typedef config::profile::map_e<config::profile::details_traits::information>::value_type information;
 
-	class console {
-	public:
-		typedef handle_t handle;
-		class screen_buffer: public std::vector<char_t> {
-		public:
-			typedef Winapi::Console::Output::ScreenBufferInfo info_type;
-			struct rect_type {
-				ushort_t x, y;
-			};
-		public:
-			screen_buffer(_in const rect_type &rect = {0, 0});
-			const rect_type& rect() const noexcept;
-			//const rect_type& rect(_in const rect_type &rect) noexcept;
-		private:
-			const rect_type _rect;
+protected:	
+	struct mode {
+		// public:
+		enum /*class*/ value {
+			starter = 0,		// optional
+			attacher
 		};
-		
+		struct args {
+			struct starter {
+			};
+			struct attacher {
+				config::profile::type profile_type;
+				process::id process_id;
+			};
+		};
+		// public:
+		mode(_in value value = value::starter) noexcept;		
+		// private:
+		value m_value;
+		std::variant<args::starter, args::attacher> m_args;
+	};
+
+	class args {
 	public:
-		console(_in pid_t pid);
-		~console();
-
-		bool read__safe(_out screen_buffer &screen_buffer) const noexcept;
-		void read(_out screen_buffer &screen_buffer) const;
-		screen_buffer read() const;
-
-	protected:
-		static handle attach_safe(_in pid_t pid) noexcept;
-		static handle attach(_in pid_t pid);
-		static bool detach_safe() noexcept;
-		static void detach();
-
-		bool get__screen_buffer_info__safe(_out screen_buffer::info_type &screen_buffer_info) const noexcept;
-		screen_buffer::info_type get__screen_buffer_info() const;
-
+		args(_in argc_t argc, _in argv_t argv[]) noexcept;
+	public:
+		_set_lasterror(bool) parse__s(_out mode &mode) const noexcept;
+		mode parse() const;
 	private:
-		handle _handle;
+		const argc_t m_argc;
+		const argv_t *m_argv;
+	};
+
+	class process_attacher {
+	public:
+		_set_lasterror(process::handle) start(_in const mode::args::attacher &args);
+	protected:
+		static _set_lasterror(process::handle) s__start(_in const mode::args::attacher &args);
+	public:
+		handle handle;
 	};
 
 public:
-	application(_in const information &information);
-	~application() noexcept;
-
-public:
-	bool check() const;			// true: ok, false: need reboot
+	int run(_in argc_t argc, _in argv_t argv[]) const;
 protected:
-	static bool check_xmrig(_in const console::screen_buffer &screen_buffer);
+	int runas_starter(_in const mode::args::starter &args) const;
+	int runas_attacher(_in const mode::args::attacher &args) const;
 
-private:
-	const information _information;
-
-};	// class app
+};	// class application
