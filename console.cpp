@@ -159,7 +159,7 @@
 //}
 //
 //_set_lasterror(bool) console::get__title__s(
-//	_out string_t &title
+//	_out string &title
 //) noexcept {
 //	std::vector<char_t> buffer(64);
 //	auto size = ::GetConsoleTitleW(buffer.data(), buffer.size());
@@ -174,16 +174,16 @@
 //	title.assign(buffer.data(), size);
 //	return true;
 //}
-//string_t console::get__title(
+//string console::get__title(
 //) {
-//	string_t title;
+//	string title;
 //	if (get__title__s(title))
 //		return title;
 //	throw ::GetLastError();
 //}
 //
 //_set_lasterror(bool) console::get__original_title__s(
-//	_out string_t &title
+//	_out string &title
 //) noexcept {
 //	std::vector<char_t> buffer(64);
 //	auto size = ::GetConsoleOriginalTitleW(buffer.data(), buffer.size());
@@ -198,9 +198,9 @@
 //	title.assign(buffer.data(), size);
 //	return true;
 //}
-//string_t console::get__original_title(
+//string console::get__original_title(
 //) {
-//	string_t original_title;
+//	string original_title;
 //	if (get__original_title__s(original_title))
 //		return original_title;
 //	throw ::GetLastError();

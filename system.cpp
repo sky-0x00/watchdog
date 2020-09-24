@@ -113,43 +113,24 @@ process::snapshot::find_out process::snapshot::find(
 }
 
 //-- process::image -------------------------------------------------------------------------------------------------------------------------------------------
-/*static*/ _set_lasterror(cstr_t) process::image::normilize_path__s(
-	_in cstr_t path, _out string_t &result
-) noexcept {
-	auto size = Winapi::File::GetFullPathName(path, nullptr, 0);
-	if (0 == size)
-		return nullptr;
-	std::vector<char_t> buffer(size);
-	size = Winapi::File::GetFullPathName(path, buffer.data(), size);
-	if (size >= buffer.size())
-		return nullptr;
-	result.assign(buffer.data(), size);
-	return result.c_str();
-}
-/*static*/ string_t process::image::normilize_path(
-	_in cstr_t path
-) {
-	string_t result;
-	if (normilize_path__s(path, result))
-		return result;
-	throw exception();
-}
-
 /*static*/ string_t process::image::get_path(
 	_in process::handle h_process /*= Winapi::Process::Current::Get()*/
 ) {
+	// todo
 	return L"";
 }
 /*static*/ _set_lasterror(cstr_t) process::image::get_path__s(
 	_out string_t &path, _in process::handle h_process /*= Winapi::Process::Current::Get()*/
 ) noexcept {
+	// todo
 	return nullptr;
 }
 
 //-- process -------------------------------------------------------------------------------------------------------------------------------------------
-process::id process::get_parent(
+/*static*/ process::id process::get_parent(
 ) {
-	return 0;	// DUMMY
+	// todo
+	return 0;
 }
 
 //-- handle -------------------------------------------------------------------------------------------------------------------------------------------
@@ -194,6 +175,29 @@ _set_lasterror(bool) handle::close(
 		return true;
 	}
 	return false;
+}
+
+//---------------------------------------------------------------------------------------------------------------------------------------------
+/*static*/ _set_lasterror(cstr_t) filesystem::path::normilize__s(
+	_in cstr_t path, _out string_t &result
+) noexcept {
+	auto size = Winapi::File::GetFullPathName(path, nullptr, 0);
+	if (0 == size)
+		return nullptr;
+	std::vector<char_t> buffer(size);
+	size = Winapi::File::GetFullPathName(path, buffer.data(), size);
+	if (size >= buffer.size())
+		return nullptr;
+	result.assign(buffer.data(), size);
+	return result.c_str();
+}
+/*static*/ string_t filesystem::path::normilize(
+	_in cstr_t path
+) {
+	string_t result;
+	if (normilize__s(path, result))
+		return result;
+	throw exception();
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------

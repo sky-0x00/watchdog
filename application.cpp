@@ -303,18 +303,49 @@ int application::runas_attacher(
 }
 
 //-- application::process_attacher -------------------------------------------------------------------------------------------------------------------------------------------
+application::process_attacher::operator process::handle(
+) const noexcept {
+	return _handle;
+}
+
 /*static protected*/ _set_lasterror(process::handle) application::process_attacher::s__start(
 	_in const mode::args::attacher &args
 ) {
-	return nullptr;
-}
+	const auto app_path { application().path() };
+	const auto cmd_line { string::format(string::buffer(64 + app_path.size()), L"\"%s %u %u\"", app_path.c_str(), 0, 0) };
 
+	return Winapi::Process::Create(...);
+}
 _set_lasterror(process::handle) application::process_attacher::start(
 	_in const mode::args::attacher &args
 ) {
-	assert(!handle);
-	handle = std::move(s__start(args));
-	return handle;
+	assert(!_handle);
+	_handle = std::move(s__start(args));
+	return _handle;
+}
+
+//---------------------------------------------------------------------------------------------------------------------------------------------
+const string_t& application::path(
+) const {
+	if (!_path)
+		_path = get_path();
+	return *_path;
+}
+
+/*static*/ string_t application::get_path(
+) {
+	string_t path;
+	if (get_path__s(path))
+		return path;
+	throw exception();
+}
+/*static*/ _set_lasterror(cstr_t) application::get_path__s(
+	_out string_t &path
+) noexcept {
+	str_t wpgmptr = nullptr;
+	if (0 != _get_wpgmptr(&wpgmptr))
+		return nullptr;
+	return filesystem::path::normilize__s(wpgmptr, path);
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------

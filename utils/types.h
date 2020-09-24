@@ -40,16 +40,26 @@ private:
 	const code _code;
 };
 
+//template <typename type> struct buffer {
+//	type *data;
+//	unsigned size;
+//};
+//template <typename type, unsigned size> struct static_buffer {
+//	type data[size];
+//};
+
 
 #include <string>
 typedef std::wstring string_t;
+typedef std::wstring_view stringview_t;
 
 struct string {
+	typedef string_t type;
+	typedef unsigned size_type;
+
 	enum case_sensitivity: bool {
 		no = false, yes
 	};
-	//struct native {
-	//};
 	template <case_sensitivity case_sensitivity = case_sensitivity::yes> class compare {
 	public:
 		int operator()(
@@ -69,12 +79,65 @@ struct string {
 		}
 		//bool is_less...
 	};
-
 	struct native {
 		struct convert {
 			static uint_t to_uint(_in cstr_t str);
 		};
 	};
+	
+	//template <size_type size> using array = char_t[size];
+	//
+	//template <size_type size> static size_type format_va(
+	//	_out array<size> &array, _in cstr_t fstr, _in va_list &args
+	//) {
+	//	assert(fstr);
+	//	const auto count = vswprintf_s(array, std::size(array), fstr, args);
+	//	assert(count > 0);
+	//	return count;
+	//}
+	//template <size_type size> static size_type format(
+	//	_out array<size> &array, _in cstr_t fstr, _in ...
+	//) {
+	//	va_list args;
+	//
+	//	va_start(args, fstr);
+	//	const auto count = format_va(array, fstr, args);
+	//	va_end(args);
+	//
+	//	return count;
+	//}
+	//template <size_type size> static string format(
+	//	_in cstr_t fstr, _in ...
+	//) {
+	//	array<size> array;
+	//	va_list args;
+	//
+	//	va_start(args, fstr);
+	//	const auto count = format_va(array, fstr, args);
+	//	va_end(args);
+	//
+	//	return { array, count };
+	//}
+
+	class buffer {
+	public:
+		buffer(_in size_type size);
+	public:
+		constexpr size_type size() const noexcept;
+		str_t data() noexcept;
+		cstr_t data() const noexcept;
+	public:
+		static size_type format(_out buffer &buffer, _in cstr_t fstr, _in ...);
+		size_type format(_in cstr_t fstr, _in ...);
+	public:
+		static size_type format_va(_out buffer &buffer, _in cstr_t fstr, _in va_list &args);
+		size_type format_va(_in cstr_t fstr, _in va_list &args);
+	private:
+		std::unique_ptr<char_t> _data;
+		const size_type _size;
+	};
+
+	static string_t format(_in _out buffer &&buffer, _in cstr_t fstr, _in ...);
 };
 
 //#include <vector>

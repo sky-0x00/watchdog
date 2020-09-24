@@ -70,10 +70,10 @@
 //	static _set_lasterror(bool) free__s() noexcept;
 //	static void free();
 //
-//	static _set_lasterror(bool) get__title__s(_out string_t &title) noexcept;
-//	static string_t get__title();
-//	static _set_lasterror(bool) get__original_title__s(_out string_t &title) noexcept;
-//	static string_t get__original_title();
+//	static _set_lasterror(bool) get__title__s(_out string &title) noexcept;
+//	static string get__title();
+//	static _set_lasterror(bool) get__original_title__s(_out string &title) noexcept;
+//	static string get__original_title();
 //
 //};	// class console
 

@@ -32,11 +32,13 @@ struct process {
 	typedef handle_t handle;
 
 	struct image {
-		static string_t normilize_path(_in cstr_t path);
-		static _set_lasterror(cstr_t) normilize_path__s(_in cstr_t path, _out string_t &result) noexcept;
-
+		// через систему, с получением информации о процессе
 		static string_t get_path(_in process::handle h_process = Winapi::Process::Current::Get());
 		static _set_lasterror(cstr_t) get_path__s(_out string_t &path, _in process::handle h_process = Winapi::Process::Current::Get()) noexcept;
+
+		// через номализацию пути, переданного в cmd-окружении консоли (перенес в класс application)
+		//static string_t get_path();
+		//static _set_lasterror(cstr_t) get_path__s(_out string_t &path) noexcept;
 	};
 
 	class snapshot {
@@ -53,7 +55,7 @@ struct process {
 		const handle _handle;
 	};
 
-	id get_parent();
+	static id get_parent();
 
 };	// struct process
 
@@ -73,3 +75,9 @@ private:
 	value _value;
 };
 
+namespace filesystem {
+	struct path {
+		static string_t normilize(_in cstr_t path);
+		static _set_lasterror(cstr_t) normilize__s(_in cstr_t path, _out string_t &result) noexcept;
+	};
+};

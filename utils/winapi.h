@@ -87,9 +87,10 @@ namespace Winapi {
 		struct SecurityAttributes: SECURITY_ATTRIBUTES {
 			SecurityAttributes(_in bool IsInheritHandle);
 		};
+		typedef PROCESS_INFORMATION Information;
 
 		_set_lasterror(bool) Create(
-			_out PROCESS_INFORMATION  &Information,
+			_out Information		  &Information,
 			_in LPCWSTR               ApplicationName,
 			_in LPWSTR                CommandLine,
 			_in DWORD                 CreationFlags,
@@ -101,7 +102,7 @@ namespace Winapi {
 			_in LPVOID                Environment = nullptr
 		) noexcept;
 		_set_lasterror(bool) Create(
-			_out PROCESS_INFORMATION  &Information,
+			_out Information		  &Information,
 			_in LPCWSTR               ApplicationName,
 			_in LPWSTR                CommandLine,
 			_in DWORD                 CreationFlags,				// также установить EXTENDED_STARTUPINFO_PRESENT

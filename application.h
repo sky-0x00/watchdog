@@ -1,6 +1,7 @@
 #pragma once
 
 #include <variant>
+#include <optional>
 #include "utils\types.h"
 #include "config.h"
 #include "system.h"
@@ -43,16 +44,24 @@ protected:
 	class process_attacher {
 	public:
 		_set_lasterror(process::handle) start(_in const mode::args::attacher &args);
+		operator process::handle() const noexcept;
 	protected:
 		static _set_lasterror(process::handle) s__start(_in const mode::args::attacher &args);
-	public:
-		handle handle;
+	private:
+		handle _handle;
 	};
 
 public:
 	int run(_in argc_t argc, _in argv_t argv[]) const;
+	const string_t& path() const;
 protected:
 	int runas_starter(_in const mode::args::starter &args) const;
 	int runas_attacher(_in const mode::args::attacher &args) const;
+protected:
+	static string_t get_path();
+	static _set_lasterror(cstr_t) get_path__s(_out string_t &path) noexcept;
+
+private:
+	mutable std::optional<string_t> _path;
 
 };	// class application
