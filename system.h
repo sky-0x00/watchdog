@@ -31,6 +31,12 @@ struct process {
 	typedef pid_t id;
 	typedef handle_t handle;
 
+	struct information {
+		handle handle;
+		id id;
+		information(_in process::handle handle = nullptr, _in process::id id = 0);
+	};
+
 	struct image {
 		// через систему, с получением информации о процессе
 		static string_t get_path(_in process::handle h_process = Winapi::Process::Current::Get());

@@ -112,6 +112,13 @@ process::snapshot::find_out process::snapshot::find(
 	throw exception();
 }
 
+//-- process::information -------------------------------------------------------------------------------------------------------------------------------------------
+process::information::information(
+	_in process::handle handle /*= nullptr*/, _in process::id id /*= 0*/
+) :
+	handle(handle), id(id)
+{}
+
 //-- process::image -------------------------------------------------------------------------------------------------------------------------------------------
 /*static*/ string_t process::image::get_path(
 	_in process::handle h_process /*= Winapi::Process::Current::Get()*/

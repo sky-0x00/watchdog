@@ -122,5 +122,5 @@ public:
 	//starter() = default;
 	void echo(_in cstr_t format, _in ...) const;
 protected:
-	void echo(_in cstr_t format, _in va_list args) const;
+	void echo(_in cstr_t format, _in va_list details) const;
 };

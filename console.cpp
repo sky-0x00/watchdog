@@ -208,17 +208,17 @@
 
 //-- console::starter -------------------------------------------------------------------------------------------------------------------
 /*protected*/ void console::starter::echo(
-	_in cstr_t format, _in va_list args
+	_in cstr_t format, _in va_list details
 ) const {
-	vwprintf_s(format, args);
+	vwprintf_s(format, details);
 }
 void console::starter::echo(
 	_in cstr_t format, _in ...
 ) const {
-	va_list args;
-	va_start(args, format);
-	echo(format, args);
-	va_end(args);
+	va_list details;
+	va_start(details, format);
+	echo(format, details);
+	va_end(details);
 }
 
 //-- ? -------------------------------------------------------------------------------------------------------------------

@@ -9,8 +9,8 @@
 //---------------------------------------------------------------------------------------------------------------------------------------------
 //bool application::check(
 //) const {
-//	const console::screen_buffer &screen_buffer = console(_information.second.id).read();
-//	switch (_information.first) {
+//	const console::screen_buffer &screen_buffer = console(m_information.second.id).read();
+//	switch (m_information.first) {
 //		case config::profile::xmrig:
 //			return check_xmrig(screen_buffer);
 //		default:
@@ -166,14 +166,14 @@
 //}
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
-application::mode::mode(
+application::work_mode::work_mode(
 	_in value value
 ) noexcept :
 	m_value(value)
 {}
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
-application::args::args(
+application::details::details(
 	_in argc_t argc, _in argv_t argv[]
 ) noexcept :
 	m_argc(argc), m_argv(argv)
@@ -181,25 +181,25 @@ application::args::args(
 	assert((0 != m_argc) && m_argv && m_argv[0]);
 }
 
-_set_lasterror(bool) application::args::parse__s(
-	_out mode &mode
+_set_lasterror(bool) application::details::parse__s(
+	_out work_mode &work_mode
 ) const noexcept {
 
 	// если аргументов нет, то это starter-режим
 	if (1 == m_argc) {
-		//mode.m_value = mode::starter;
-		//mode.m_args.emplace<mode::args::starter>();
+		//work_mode.m_value = work_mode::starter;
+		//work_mode.m_details.emplace<work_mode::details::starter>();
 		return true;
 	}
 	// если аргументов 2, то это attacher-режим
 	if (3 == m_argc) {
 		// проверка - первый аргумент это profile::type, второй - process::id
 		try {
-			const mode::args::attacher attacher { 
+			const work_mode::details<work_mode::attacher> attacher { 
 				static_cast<config::profile::type>(string::native::convert::to_uint(m_argv[1])), string::native::convert::to_uint(m_argv[2])
 			};
-			mode.m_value = mode::attacher;
-			mode.m_args = std::move(attacher);
+			work_mode.m_value = work_mode::attacher;
+			work_mode.m_details = std::move(attacher);
 		}
 		catch (...) {
 			goto exit_false;
@@ -214,11 +214,11 @@ exit_false:
 	Winapi::LastError::Set(ERROR_BAD_ARGUMENTS);
 	return false;
 }
-application::mode application::args::parse(
+application::work_mode application::details::parse(
 ) const {
-	mode mode;
-	if (parse__s(mode))
-		return mode;
+	work_mode work_mode;
+	if (parse__s(work_mode))
+		return work_mode;
 	throw exception();
 }
 
@@ -226,18 +226,18 @@ application::mode application::args::parse(
 int application::run(
 	_in argc_t argc, _in argv_t argv[]
 ) const {
-	const auto mode = args(argc, argv).parse();
-	switch (mode.m_value) {
-		case mode::starter:
-			return runas_starter(std::get<mode::starter>(mode.m_args));
-		case mode::attacher:
-			return runas_attacher(std::get<mode::attacher>(mode.m_args));
+	const auto work_mode = details(argc, argv).parse();
+	switch (work_mode.m_value) {
+		case work_mode::starter:
+			return runas_starter(std::get<work_mode::starter>(work_mode.m_details));
+		case work_mode::attacher:
+			return runas_attacher(std::get<work_mode::attacher>(work_mode.m_details));
 	}
 	throw exception();		// code is unreachable
 }
 
 int application::runas_starter(
-	_in const mode::args::starter &args
+	_in const work_mode::details<work_mode::starter> &details
 ) const {
 	const console::starter console;
 
@@ -270,6 +270,10 @@ int application::runas_starter(
 	auto is_reboot_needed = false;
 
 	for (const auto &process : process_s) {
+		process_attacher process_attacher;
+		if (!process_attacher.start(work_mode::details<work_mode::attacher>(process.first, process.second.process_id)))
+			continue;
+
 		DWORD ConsoleProcessList[8];
 		auto ConsoleProcessCount = ::GetConsoleProcessList(ConsoleProcessList, _countof(ConsoleProcessList));
 		auto hConsole = ::GetStdHandle(STD_OUTPUT_HANDLE);
@@ -297,39 +301,56 @@ int application::runas_starter(
 }
 
 int application::runas_attacher(
-	_in const mode::args::attacher &args
+	_in const work_mode::details<work_mode::attacher> &details
 ) const {
+	::OutputDebugStringW(L"--------------------------------------------------------------------\n");
 	return 0;
 }
 
 //-- application::process_attacher -------------------------------------------------------------------------------------------------------------------------------------------
+const process::information& application::process_attacher::information(
+) const noexcept {
+	return m_information;
+}
+
 application::process_attacher::operator process::handle(
 ) const noexcept {
-	return _handle;
+	return m_information.handle;
 }
 
-/*static protected*/ _set_lasterror(process::handle) application::process_attacher::s__start(
-	_in const mode::args::attacher &args
+/*static protected*/ _set_lasterror(bool) application::process_attacher::s__start(
+	_in const work_mode::details<work_mode::attacher> &details, _out process::information &process_information
 ) {
-	const auto app_path { application().path() };
-	const auto cmd_line { string::format(string::buffer(64 + app_path.size()), L"\"%s %u %u\"", app_path.c_str(), 0, 0) };
+	const auto app_path { 
+		application().path()
+	};
+	const auto cmd_line { 
+		string::format(string::buffer(64 + app_path.size()), L"\"%s\" %u %u", app_path.c_str(), details.profile_type, details.process_id)
+	};
 
-	return Winapi::Process::Create(...);
+	Winapi::Process::CreateInfo CreateInfo;
+	Winapi::Process::StartupInfo StartupInfo;		// все по-умолчанию
+	if (!Winapi::Process::Create(
+		CreateInfo, app_path.c_str(), const_cast<str_t>(cmd_line.c_str()), NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW | DETACHED_PROCESS, StartupInfo)
+	)
+		return false;
+	process_information = { CreateInfo.hProcess, CreateInfo.dwProcessId };
+	Winapi::Handle::Close(CreateInfo.hThread);
+	return true;
 }
-_set_lasterror(process::handle) application::process_attacher::start(
-	_in const mode::args::attacher &args
+_set_lasterror(bool) application::process_attacher::start(
+	_in const work_mode::details<work_mode::attacher> &details
 ) {
-	assert(!_handle);
-	_handle = std::move(s__start(args));
-	return _handle;
+	assert(!m_information.handle && (0 == m_information.id));
+	return s__start(details, m_information);
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
 const string_t& application::path(
 ) const {
-	if (!_path)
-		_path = get_path();
-	return *_path;
+	if (!m_path)
+		m_path = get_path();
+	return *m_path;
 }
 
 /*static*/ string_t application::get_path(

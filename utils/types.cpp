@@ -26,7 +26,7 @@ exception::code exception::get_code(
 	
 	str_t pstr = nullptr;
 	const auto result = wcstoul(str, &pstr, 10);
-	assert(!pstr);
+	assert(L'\0' == *pstr);
 
 	return result;
 }
@@ -56,38 +56,38 @@ cstr_t string::buffer::data(
 
 //----------------------------------------------------------------------------------------------------------------
 /*static*/ string::size_type string::buffer::format_va(
-	_out buffer &buffer, _in cstr_t fstr, _in va_list &args
+	_out buffer &buffer, _in cstr_t fstr, _in va_list &details
 ) {
 	assert(fstr);
-	const auto count = vswprintf_s(buffer.data(), buffer.size(), fstr, args);
+	const auto count = vswprintf_s(buffer.data(), buffer.size(), fstr, details);
 	assert(count > 0);
 	return count;
 }
 string::size_type string::buffer::format_va(
-	_in cstr_t fstr, _in va_list &args
+	_in cstr_t fstr, _in va_list &details
 ) {
-	return format_va(*this, fstr, args);
+	return format_va(*this, fstr, details);
 }
 
 /*static*/ string::size_type string::buffer::format(
 	_out buffer &buffer, _in cstr_t fstr, _in ...
 ) {
-	va_list args;
+	va_list details;
 
-	va_start(args, fstr);
-	const auto count = format_va(buffer, fstr, args);
-	va_end(args);
+	va_start(details, fstr);
+	const auto count = format_va(buffer, fstr, details);
+	va_end(details);
 
 	return count;
 }
 string::size_type string::buffer::format(
 	_in cstr_t fstr, _in ...
 ) {
-	va_list args;
+	va_list details;
 
-	va_start(args, fstr);
-	const auto count = format_va(fstr, args);
-	va_end(args);
+	va_start(details, fstr);
+	const auto count = format_va(fstr, details);
+	va_end(details);
 
 	return count;
 }
@@ -96,11 +96,11 @@ string::size_type string::buffer::format(
 /*static*/ string_t string::format(
 	_in _out buffer &&buffer, _in cstr_t fstr, _in ...
 ) {
-	va_list args;
+	va_list details;
 
-	va_start(args, fstr);
-	const auto count = buffer.format_va(fstr, args);
-	va_end(args);
+	va_start(details, fstr);
+	const auto count = buffer.format_va(fstr, details);
+	va_end(details);
 
 	return { buffer.data(), count };
 }

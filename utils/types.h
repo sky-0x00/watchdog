@@ -23,7 +23,7 @@ typedef int int_t;
 typedef unsigned int uint_t;
 
 typedef void *handle_t;					// handle
-typedef unsigned pid_t;					// process-id
+typedef unsigned pid_t, tid_t;			// process-id, thread-id
 
 typedef unsigned argc_t;
 typedef cstr_t argv_t;
@@ -88,21 +88,21 @@ struct string {
 	//template <size_type size> using array = char_t[size];
 	//
 	//template <size_type size> static size_type format_va(
-	//	_out array<size> &array, _in cstr_t fstr, _in va_list &args
+	//	_out array<size> &array, _in cstr_t fstr, _in va_list &details
 	//) {
 	//	assert(fstr);
-	//	const auto count = vswprintf_s(array, std::size(array), fstr, args);
+	//	const auto count = vswprintf_s(array, std::size(array), fstr, details);
 	//	assert(count > 0);
 	//	return count;
 	//}
 	//template <size_type size> static size_type format(
 	//	_out array<size> &array, _in cstr_t fstr, _in ...
 	//) {
-	//	va_list args;
+	//	va_list details;
 	//
-	//	va_start(args, fstr);
-	//	const auto count = format_va(array, fstr, args);
-	//	va_end(args);
+	//	va_start(details, fstr);
+	//	const auto count = format_va(array, fstr, details);
+	//	va_end(details);
 	//
 	//	return count;
 	//}
@@ -110,11 +110,11 @@ struct string {
 	//	_in cstr_t fstr, _in ...
 	//) {
 	//	array<size> array;
-	//	va_list args;
+	//	va_list details;
 	//
-	//	va_start(args, fstr);
-	//	const auto count = format_va(array, fstr, args);
-	//	va_end(args);
+	//	va_start(details, fstr);
+	//	const auto count = format_va(array, fstr, details);
+	//	va_end(details);
 	//
 	//	return { array, count };
 	//}
@@ -130,8 +130,8 @@ struct string {
 		static size_type format(_out buffer &buffer, _in cstr_t fstr, _in ...);
 		size_type format(_in cstr_t fstr, _in ...);
 	public:
-		static size_type format_va(_out buffer &buffer, _in cstr_t fstr, _in va_list &args);
-		size_type format_va(_in cstr_t fstr, _in va_list &args);
+		static size_type format_va(_out buffer &buffer, _in cstr_t fstr, _in va_list &details);
+		size_type format_va(_in cstr_t fstr, _in va_list &details);
 	private:
 		std::unique_ptr<char_t> _data;
 		const size_type _size;

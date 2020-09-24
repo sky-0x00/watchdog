@@ -87,31 +87,34 @@ namespace Winapi {
 		struct SecurityAttributes: SECURITY_ATTRIBUTES {
 			SecurityAttributes(_in bool IsInheritHandle);
 		};
-		typedef PROCESS_INFORMATION Information;
+		
+		struct CreateInfo: PROCESS_INFORMATION {
+			CreateInfo();
+		};
 
 		_set_lasterror(bool) Create(
-			_out Information		  &Information,
-			_in LPCWSTR               ApplicationName,
-			_in LPWSTR                CommandLine,
-			_in DWORD                 CreationFlags,
-			_in StartupInfo			  &StartupInfo,			
-			_in bool                  IsInheritHandles = false,
-			_in const SecurityAttributes *saProcess = nullptr,
-			_in const SecurityAttributes *saThread = nullptr,
-			_in LPCWSTR               CurrentDirectory = nullptr,
-			_in LPVOID                Environment = nullptr
+			_out CreateInfo&			CreateInfo,
+			_in cstr_t					ApplicationName,
+			_in cstr_t					CommandLine,
+			_in DWORD					CreationFlags,
+			_in const StartupInfo&		StartupInfo,			
+			_in bool					IsInheritHandles = false,
+			_in const SecurityAttributes* saProcess = nullptr,
+			_in const SecurityAttributes* saThread = nullptr,
+			_in cstr_t					CurrentDirectory = nullptr,
+			_in pvoid_t					Environment = nullptr
 		) noexcept;
-		_set_lasterror(bool) Create(
-			_out Information		  &Information,
-			_in LPCWSTR               ApplicationName,
-			_in LPWSTR                CommandLine,
-			_in DWORD                 CreationFlags,				// также установить EXTENDED_STARTUPINFO_PRESENT
-			_in StartupInfoEx		  &StartupInfoEx,
-			_in bool                  IsInheritHandles = false,
-			_in const SecurityAttributes *saProcess = nullptr,
-			_in const SecurityAttributes *saThread = nullptr,
-			_in LPCWSTR               CurrentDirectory = nullptr,
-			_in LPVOID                Environment = nullptr
+		_set_lasterror(bool) CreateEx(
+			_out CreateInfo&			CreateInfo,
+			_in cstr_t					ApplicationName,
+			_in cstr_t					CommandLine,
+			_in DWORD					CreationFlags,				// также установить EXTENDED_STARTUPINFO_PRESENT
+			_in const StartupInfoEx&	StartupInfoEx,
+			_in bool					IsInheritHandles = false,
+			_in const SecurityAttributes* saProcess = nullptr,
+			_in const SecurityAttributes* saThread = nullptr,
+			_in cstr_t					CurrentDirectory = nullptr,
+			_in pvoid_t					Environment = nullptr
 		) noexcept;
 
 		_set_lasterror(bool) Open(_out Handle &hProcess, _in Id Id, _in DWORD DesiredAccess, _in bool IsInheritHandle = false) noexcept;

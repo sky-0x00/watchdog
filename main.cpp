@@ -1,9 +1,16 @@
 //#include <map>
 #include "application.h"
 
+#ifdef _DEBUG
+	//#define WAIT_FOR__DUBUGGER			// если определено, то ожидаем подключение отладчика на старте
+#endif
+
 int wmain(
 	_in argc_t argc, _in argv_t argv[]
 ) {
+#ifdef WAIT_FOR__DUBUGGER
+	while (true);
+#endif
 	const application application;
 	return application.run(argc, argv);
 }

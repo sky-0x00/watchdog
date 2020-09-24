@@ -9,10 +9,10 @@ namespace config {
 		
 		//typedef unsigned count;
 
-		enum /*class*/ type {
+		enum /*class*/ type: unsigned {
 			xmrig = 1
 		};
-		enum /*class*/ details_traits {
+		enum class details_traits: unsigned {
 			search = 1, information
 		};
 

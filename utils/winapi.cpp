@@ -144,6 +144,12 @@ Process::SecurityAttributes::SecurityAttributes(
 	bInheritHandle = IsInheritHandle ? TRUE : FALSE;
 }
 
+//-- Process::CreateInfo -------------------------------------------------------------------------------------------------------------------------------------------
+Process::CreateInfo::CreateInfo(
+) :
+	PROCESS_INFORMATION{}
+{}
+
 //-- Process -------------------------------------------------------------------------------------------------------------------------------------------
 _set_lasterror(Process::Handle) Process::Open(
 	_in Id Id, _in DWORD DesiredAccess, _in bool IsInheritHandle /*= false*/
@@ -170,42 +176,42 @@ _set_lasterror(Token::Handle) Process::OpenToken(
 }
 
 _set_lasterror(bool) Process::Create(
-	_out PROCESS_INFORMATION &Information,
-	_in LPCWSTR               ApplicationName,
-	_in LPWSTR                CommandLine,
-	_in DWORD                 CreationFlags,
-	_in StartupInfo			  &StartupInfo,
-	_in bool                  IsInheritHandles /*= false*/,
-	_in const SecurityAttributes *saProcess /*= nullptr*/,
-	_in const SecurityAttributes *saThread /*= nullptr*/,
-	_in LPCWSTR               CurrentDirectory /*= nullptr*/,
-	_in LPVOID                Environment /*= nullptr*/
+	_out CreateInfo&			CreateInfo,
+	_in cstr_t					ApplicationName,
+	_in cstr_t					CommandLine,
+	_in DWORD					CreationFlags,
+	_in const StartupInfo&		StartupInfo,
+	_in bool					IsInheritHandles /*= false*/,
+	_in const SecurityAttributes* saProcess /*= nullptr*/,
+	_in const SecurityAttributes* saThread /*= nullptr*/,
+	_in cstr_t					CurrentDirectory /*= nullptr*/,
+	_in pvoid_t					Environment /*= nullptr*/
 ) noexcept {
 	return ::CreateProcessW(
-		ApplicationName, CommandLine, 
+		ApplicationName, const_cast<str_t>(CommandLine), 
 		reinterpret_cast<LPSECURITY_ATTRIBUTES>(const_cast<SecurityAttributes*>(saProcess)), reinterpret_cast<LPSECURITY_ATTRIBUTES>(const_cast<SecurityAttributes*>(saThread)),
 		IsInheritHandles ? TRUE : FALSE, CreationFlags, Environment, CurrentDirectory,
-		&StartupInfo, &Information
+		dynamic_cast<LPSTARTUPINFOW>(&const_cast<Process::StartupInfo&>(StartupInfo)), &CreateInfo
 	);
 }
-_set_lasterror(bool) Process::Create(
-	_out PROCESS_INFORMATION &Information,
-	_in LPCWSTR               ApplicationName,
-	_in LPWSTR                CommandLine,
-	_in DWORD                 CreationFlags,				// также установить EXTENDED_STARTUPINFO_PRESENT
-	_in StartupInfoEx		  &StartupInfoEx,
-	_in bool                  IsInheritHandles /*= false*/,
-	_in const SecurityAttributes *saProcess /*= nullptr*/,
-	_in const SecurityAttributes *saThread /*= nullptr*/,
-	_in LPCWSTR               CurrentDirectory /*= nullptr*/,
-	_in LPVOID                Environment /*= nullptr*/
+_set_lasterror(bool) Process::CreateEx(
+	_out CreateInfo&			CreateInfo,
+	_in cstr_t					ApplicationName,
+	_in cstr_t					CommandLine,
+	_in DWORD					CreationFlags,				// также установить EXTENDED_STARTUPINFO_PRESENT
+	_in const StartupInfoEx&	StartupInfoEx,
+	_in bool					IsInheritHandles /*= false*/,
+	_in const SecurityAttributes* saProcess /*= nullptr*/,
+	_in const SecurityAttributes* saThread /*= nullptr*/,
+	_in cstr_t					CurrentDirectory /*= nullptr*/,
+	_in pvoid_t					Environment /*= nullptr*/
 ) noexcept {
 	CreationFlags |= EXTENDED_STARTUPINFO_PRESENT;
 	return ::CreateProcessW(
-		ApplicationName, CommandLine,
+		ApplicationName, const_cast<str_t>(CommandLine),
 		reinterpret_cast<LPSECURITY_ATTRIBUTES>(const_cast<SecurityAttributes*>(saProcess)), reinterpret_cast<LPSECURITY_ATTRIBUTES>(const_cast<SecurityAttributes*>(saThread)),
 		IsInheritHandles ? TRUE : FALSE, CreationFlags, Environment, CurrentDirectory,
-		&StartupInfoEx.StartupInfo, &Information
+		const_cast<LPSTARTUPINFOW>(&StartupInfoEx.StartupInfo), &CreateInfo
 	);
 }
 
